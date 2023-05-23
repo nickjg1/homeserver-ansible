@@ -1,0 +1,2 @@
+[home]
+homeserver ansible_host=10.0.0.227 ansible_user=nick ansible_connection=ssh ansible_ssh_private_key_file=~/.ssh/homeserver

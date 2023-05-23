@@ -1,0 +1,8 @@
+username: nick
+packages:
+  - vim
+  - neofetch
+  - htop
+  - tmux
+  - speedtest-cli
+  - nvim
