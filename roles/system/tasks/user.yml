@@ -39,12 +39,6 @@
     line: "%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL"
     validate: "/usr/sbin/visudo -cf %s"
 
-- name: Copy the public SSH key
-  authorized_key:
-    user: "{{ username }}"
-    state: present
-    key: "{{ ssh_public_key }}"
-
 - name: Set the default shell
   user:
     name: "{{ username }}"

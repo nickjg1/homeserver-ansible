@@ -56,6 +56,8 @@ extra_packages:
 #
 # SSH (geerlingguy.security)
 #
+email: ngyorgypal@gmail.com
+
 security_ssh_port: 69
 
 security_sudoers_passwordless: ["{{ username }}"]
@@ -67,3 +69,11 @@ security_autoupdate_mail_to: "{{ email }}"
 security_autoupdate_reboot_time: "23:00"
 
 security_autoupdate_mail_on_error: false
+
+security_ssh_password_authentication: "no"
+security_ssh_permit_root_login: "no"
+security_ssh_usedns: "no"
+security_ssh_permit_empty_password: "no"
+security_ssh_challenge_response_auth: "no"
+security_ssh_gss_api_authentication: "no"
+security_ssh_x11_forwarding: "no"
