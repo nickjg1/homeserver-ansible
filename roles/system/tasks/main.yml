@@ -1,0 +1,3 @@
+- include_tasks: essential.yml
+- include_tasks: ssh.yml
+- include_tasks: user.yml

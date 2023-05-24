@@ -1,4 +1,6 @@
-username: nick
+username: ansible
+
+shell: /bin/bash
 
 packages:
   - vim
@@ -7,5 +9,3 @@ packages:
   - tmux
   - speedtest-cli
   - neovim
-
-shell: /usr/bin/bash
