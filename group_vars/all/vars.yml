@@ -1,4 +1,6 @@
-username: nick
+username: ansible
+
+ssh_port: 22
 
 packages:
   - vim
