@@ -1,6 +1,21 @@
 ---
 - hosts: all
+  gather_facts: no
+
+  pre_tasks:
+    - import_tasks: tasks/ssh_port_juggle.yml
+      tags:
+        - always
+        - port
+
+- hosts: all
   become: yes
 
   roles:
     - role: system
+
+    - role: geerlingguy.pip
+
+    - role: geerlingguy.docker
+
+    - role: geerlingguy.security

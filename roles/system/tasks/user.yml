@@ -1,36 +1,73 @@
-- name: Ensure all necessary groups are created
+---
+- name: Set the name of a sudo group
+  set_fact:
+    sudo_group: sudo
+
+- name: Ensure the necessary groupsexists
   group:
     name: "{{ item }}"
+    state: present
   loop:
-    - docker
-    - samba
     - "{{ username }}"
+    - docker
 
-- name: Ensure non-root ("{{ username }}") user is created
+- name: Create a login user
   user:
     name: "{{ username }}"
     password: "{{ secret_password | password_hash('sha512') }}"
     groups:
-      - sudo
+      - "{{ sudo_group }}"
       - docker
       - users
+    state: present
     append: true
-    shell: "{{ shell }}"
-    update_password: on_create
 
-- name: Enable passwordless sudo for "{{ username }}"
-  lineinfile:
-    dest: /etc/sudoers
-    regexp: "^%wheel"
-    line: "%sudo ALL=(ALL) NOPASSWD: ALL"
-    validate: "visudo -cf %s"
-
-- name: Supress login message
+- name: Chmod the user home directory
   file:
-    path: "/home/{{ username }}/.hushlogin"
+    path: "/home/{{ username }}"
+    state: directory
+    mode: 0755
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    recurse: yes
+
+- name: Allow '{{ sudo_group }}' group to have passwordless sudo
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: "^%{{ sudo_group }}"
+    line: "%{{ sudo_group }} ALL=(ALL) NOPASSWD: ALL"
+    validate: "/usr/sbin/visudo -cf %s"
+
+- name: Copy the public SSH key
+  authorized_key:
+    user: "{{ username }}"
+    state: present
+    key: "{{ ssh_public_key }}"
+
+- name: Set the default shell
+  user:
+    name: "{{ username }}"
+    shell: "{{ shell }}"
+
+- name: Disable fish greeting
+  lineinfile:
+    path: /home/{{ username }}/.config/fish/fish_variables
+    state: present
+    regexp: "fish_greeting:.+"
+    line: "SETUVAR fish_greeting:"
+    create: true
+    owner: "{{ username }}"
+    group: "{{ username }}"
     mode: 0644
+  when: '"fish" in shell'
+
+- name: Suppress login messages
+  file:
+    name: /home/{{ username }}/.hushlogin
+    mode: 0644
+    state: touch
     owner: "{{ username }}"
     group: "{{ username }}"
     modification_time: preserve
     access_time: preserve
-    state: touch

@@ -1,9 +1,34 @@
-- name: Update packages
+---
+- name: Update and upgrade packages
   apt:
     update_cache: yes
     upgrade: yes
+    autoremove: yes
 
-- name: Install essential packages
+- name: Check if reboot required
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Reboot if required
+  reboot:
+    msg: Rebooting due to a kernel update
+  when: reboot_required_file.stat.exists
+
+- name: Install extra packages
   package:
-    name: "{{ packages }}"
-    state: latest
+    name: "{{ extra_packages }}"
+    state: present
+
+- name: Set the hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Replace the hostname entry with our own
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    insertafter: ^127\.0\.0\.1 *localhost
+    line: "127.0.0.1 {{ inventory_hostname }}"
+    owner: root
+    group: root
+    mode: "0644"
