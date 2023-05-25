@@ -15,8 +15,6 @@ username: nick
 
 shell: /usr/bin/fish
 
-dotfiles_repo: https://github.com/notthebee/dotfiles
-
 #
 # Docker apps
 #
@@ -26,32 +24,33 @@ docker_dir: /opt/docker/data
 docker_compose_dir: /opt/docker/compose
 
 services:
-  - homeassistant
-  - mqtt
-  - nginxproxymanager
-  - deconz
-  - photoprism
-  - syncthing
+  - dashy_enabled
+  - bazarr_enabled
+  - couchpotato_enabled
+  - pyload_enabled
+  - minecraft_server_enabled
+  - homeassistant_enabled
+  - homeassistant_available_externally
+  - plex_enabled
+  - firefly_enabled
+  - piwigo_enabled
+  - traefik_enabled
+  - duplicati_enabled
+  - watchtower_enabled
 
 #
 # Packages
 #
 extra_packages:
   - fish
-  - iperf3
   - speedtest-cli
   - htop
-  - stow
   - exa
   - git
   - neofetch
   - neovim
   - tmux
-  - mosh
-  - rsync
-  - lm-sensors
-  - iotop
-  - ncdu
+  - expect
 
 #
 # SSH (geerlingguy.security)
@@ -77,3 +76,7 @@ security_ssh_permit_empty_password: "no"
 security_ssh_challenge_response_auth: "no"
 security_ssh_gss_api_authentication: "no"
 security_ssh_x11_forwarding: "no"
+
+ip: 10.0.0.227
+
+network_name: nicks-network

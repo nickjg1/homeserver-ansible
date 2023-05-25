@@ -1,19 +1,19 @@
 ---
 - name: SSH Port Juggle | Try connecting via SSH
   wait_for_connection:
-    timeout: 5
+    timeout: 2
   ignore_errors: true
   register: _ssh_port_result
 
 - name: SSH Port Juggle | Set the ansible_port to the fallback default port
   set_fact:
-    ansible_ssh_port: "22"
+    ansible_ssh_port: "69"
   when:
     - _ssh_port_result is failed
 
 - name: SSH Port Juggle | Try connecting again
   wait_for_connection:
-    timeout: 5
+    timeout: 3
   ignore_errors: true
   register: _ssh_port_default_result
   when:
@@ -30,7 +30,7 @@
 
 - name: Try root
   wait_for_connection:
-    timeout: 5
+    timeout: 3
   ignore_errors: true
   register: _ssh_port_default_cred_result
   when:

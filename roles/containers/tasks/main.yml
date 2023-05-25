@@ -1,0 +1,24 @@
+---
+- name: Copy ansible-nas install script
+  copy:
+    src: install.sh
+    dest: /home/{{ username }}/install.sh
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: 0755
+
+- name: Run install.sh
+  command: sh /home/{{ username }}/install.sh {{ secret_password | password_hash('sha512') }} {{username}}
+  register: shell_result
+
+- name: Print install.sh output
+  debug:
+    msg: "{{ shell_result.stdout_lines }}"
+
+- name: Clean Up
+  file:
+    path: /home/{{ username }}/install.sh
+    state: absent
+  directory:
+    path: /home/{{ username }}/ansible-nas
+    state: absent
