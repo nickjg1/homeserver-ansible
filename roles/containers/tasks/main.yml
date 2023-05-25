@@ -7,6 +7,27 @@
     group: "{{ username }}"
     mode: 0755
 
+#if repo exists, delete it and clone it again
+- name: Delete ansible-nas repo
+  file:
+    path: /home/{{ username }}/ansible-nas
+    state: absent
+
+- name: Clone ansible-nas repo
+  git:
+    repo: https://github.com/davestephens/ansible-nas.git
+    dest: /home/{{ username }}/ansible-nas
+    clone: yes
+
+- name: Copy sample inventory
+  command: cp -rfp inventories/sample inventories/my-ansible-nas
+  args:
+    chdir: /home/{{ username }}/ansible-nas
+
+- name: Echo services
+  shell: echo {{ item }} >> /home/{{ username }}/ansible-nas/inventories/my-ansible-nas/group_vars/nas.yml
+  loop: "{{ services }}"
+
 - name: Run install.sh
   command: sh /home/{{ username }}/install.sh {{ secret_password | password_hash('sha512') }} {{username}}
   register: shell_result
@@ -14,11 +35,3 @@
 - name: Print install.sh output
   debug:
     msg: "{{ shell_result.stdout_lines }}"
-
-- name: Clean Up
-  file:
-    path: /home/{{ username }}/install.sh
-    state: absent
-  directory:
-    path: /home/{{ username }}/ansible-nas
-    state: absent

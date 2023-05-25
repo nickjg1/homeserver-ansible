@@ -10,33 +10,14 @@ if [ -z "$2" ]; then
   exit 1
 fi
 
-cd /home/$2
+cd /home/$2/ansible-nas
 
-if [ -e "ansible-nas" ]; then
-  sudo rm -rf ansible-nas
-fi
 
 path=/home/$2/ansible-nas/inventories/my-ansible-nas/group_vars/nas.yml
 path2=/home/$2/ansible-nas/inventories/my-ansible-nas/inventory
 
-git clone https://github.com/davestephens/ansible-nas.git
-cd ansible-nas
-cp -rfp inventories/sample inventories/my-ansible-nas
 sed -i '$ d' $path
 sed -i '$ d' $path
-echo "dashy_enabled: true" >> $path
-echo "bazarr_enabled: true" >> $path
-echo "couchpotato_enabled: true" >> $path
-echo "pyload_enabled: true" >> $path
-echo "minecraft_server_enabled: true" >> $path
-echo "homeassistant_enabled: true" >> $path
-echo "homeassistant_available_externally: true" >> $path
-echo "plex_enabled: true" >> $path
-echo "firefly_enabled: true" >> $path
-echo "piwigo_enabled: true" >> $path
-echo "traefik_enabled: true" >> $path
-echo "duplicati_enabled: true" >> $path
-echo "watchtower_enabled: true" >> $path
 sed -i '$ d' $path2
 echo "ansible-nas ansible_connection=local ansible_host=localhost" >> $path2
 ansible-galaxy install -r requirements.yml

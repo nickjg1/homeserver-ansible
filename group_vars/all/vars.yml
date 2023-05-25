@@ -24,19 +24,19 @@ docker_dir: /opt/docker/data
 docker_compose_dir: /opt/docker/compose
 
 services:
-  - dashy_enabled
-  - bazarr_enabled
-  - couchpotato_enabled
-  - pyload_enabled
-  - minecraft_server_enabled
-  - homeassistant_enabled
-  - homeassistant_available_externally
-  - plex_enabled
-  - firefly_enabled
-  - piwigo_enabled
-  - traefik_enabled
-  - duplicati_enabled
-  - watchtower_enabled
+  - "dashy_enabled : true"
+  - "bazarr_enabled : true"
+  - "couchpotato_enabled: true"
+  - "pyload_enabled: true"
+  - "minecraft_server_enabled: true"
+  - "homeassistant_enabled: true"
+  - "homeassistant_available_externally: true"
+  - "plex_enabled: true"
+  - "firefly_enabled: true"
+  - "piwigo_enabled: true"
+  - "traefik_enabled: true"
+  - "duplicati_enabled: true"
+  - "watchtower_enabled: true"
 
 #
 # Packages
