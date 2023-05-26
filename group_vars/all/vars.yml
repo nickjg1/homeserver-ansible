@@ -16,25 +16,24 @@ username: nick
 shell: /usr/bin/fish
 
 services:
-  - "dashy_enabled : true"
+  - "dashy_enabled : true" #8082
   - "minecraft_server_enabled: true"
-  - "homeassistant_enabled: true"
+  - "homeassistant_enabled: true" #8123
   - "homeassistant_available_externally: true"
-  - "firefly_enabled: true"
-  - "traefik_enabled: true"
+  - "firefly_enabled: true" #8066
+  - "traefik_enabled: true" #8083
   - "watchtower_enabled: true"
-  - "radarr_enabled: true"
-  - "sonarr_enabled: true"
-  - "jellyfin_enabled: true"
-  - "sabnzbd_enabled: true"
-  - "nextcloud_enabled: true"
-  - "bitwarden_enabled: true"
-  - "utorrent_enabled: true"
-  - "jackett_enabled: true"
-  - "portainer_enabled: true"
-  - "couchpotato_enabled: true"
-  - "transmission_enabled: true"
-  - "overseerr_enabled: true"
+  - "radarr_enabled: true" #7878
+  - "sonarr_enabled: true" #8989
+  - "jellyfin_enabled: true" #8896
+  - "sabnzbd_enabled: true" #18080
+  - "nextcloud_enabled: true" #8080
+  - "utorrent_enabled: true" #8111
+  - "jackett_enabled: true" #9117
+  - "portainer_enabled: true" #9000
+  - "couchpotato_enabled: true" #5050
+  - "transmission_enabled: true" #9092
+  - "overseerr_enabled: true" #5055
 
 #
 # Packages
@@ -54,6 +53,7 @@ extra_packages:
 #
 # SSH (geerlingguy.security)
 #
+email: ngorgypal@gmail
 
 security_ssh_port: 69
 
