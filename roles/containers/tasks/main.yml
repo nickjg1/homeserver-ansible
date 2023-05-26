@@ -19,6 +19,14 @@
     dest: /home/{{ username }}/ansible-nas
     clone: yes
 
+- name: Copy expect script
+  copy:
+    src: expect_script.exp
+    dest: /home/{{ username }}/ansible-nas/
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: a+x
+
 - name: Copy sample inventory
   command: sudo cp -rfp inventories/sample inventories/my-ansible-nas
   args:
@@ -35,13 +43,14 @@
 - name: Run expect script
   expect:
     chdir: /home/{{ username }}/ansible-nas
-    command: sudo ./expect_script.exp
+    command: sudo ./expect_script.exp {{ secret_password | password_hash('sha512') }}
     responses: "{{ secret_password | password_hash('sha512') }}"
     timeout: 1000
-# - name: Clean up
-#   file:
-#     path: /home/{{ username }}/install.sh
-#     state: absent
-#   file:
-#     path: /home/{{ username }}/ansible-nas
-#     state: absent
+
+- name: Clean up
+  file:
+    path: /home/{{ username }}/install.sh
+    state: absent
+  file:
+    path: /home/{{ username }}/ansible-nas
+    state: absent
