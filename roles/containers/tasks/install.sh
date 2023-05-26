@@ -12,7 +12,6 @@ fi
 
 cd /home/$2/ansible-nas
 
-
 path=/home/$2/ansible-nas/inventories/my-ansible-nas/group_vars/nas.yml
 path2=/home/$2/ansible-nas/inventories/my-ansible-nas/inventory
 
@@ -32,8 +31,7 @@ send "$password\r"
 interact
 EOD
 )
-echo "$expect_script" > expect_script.exp
-chmod +x expect_script.exp
-./expect_script.exp "$1"
+cd /home/$2/ansible-nas
+sudo echo "$expect_script" > expect_script.exp
+sudo chmod +x expect_script.exp
 
-rm expect_script.exp

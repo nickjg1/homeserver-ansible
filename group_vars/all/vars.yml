@@ -25,18 +25,20 @@ docker_compose_dir: /opt/docker/compose
 
 services:
   - "dashy_enabled : true"
-  - "bazarr_enabled : true"
-  - "couchpotato_enabled: true"
-  - "pyload_enabled: true"
   - "minecraft_server_enabled: true"
   - "homeassistant_enabled: true"
   - "homeassistant_available_externally: true"
-  - "plex_enabled: true"
   - "firefly_enabled: true"
-  - "piwigo_enabled: true"
   - "traefik_enabled: true"
-  - "duplicati_enabled: true"
   - "watchtower_enabled: true"
+  - "radarr_enabled: true"
+  - "sonarr_enabled: true"
+  - "jellyfin_enabled: true"
+  - "sabnzbd_enabled: true"
+  - "nextcloud_enabled: true"
+  - "bitwarden_enabled: true"
+  - "utorrent_enabled: true"
+  - "jackett_enabled: true"
 
 #
 # Packages
@@ -51,6 +53,7 @@ extra_packages:
   - neovim
   - tmux
   - expect
+  - ansible
 
 #
 # SSH (geerlingguy.security)
@@ -77,6 +80,6 @@ security_ssh_challenge_response_auth: "no"
 security_ssh_gss_api_authentication: "no"
 security_ssh_x11_forwarding: "no"
 
-ip: 10.0.0.227
+ip: 10.0.0.224
 
 network_name: nicks-network

@@ -5,7 +5,7 @@
     dest: /home/{{ username }}/install.sh
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: 0755
+    mode: a+x
 
 #if repo exists, delete it and clone it again
 - name: Delete ansible-nas repo
@@ -20,7 +20,7 @@
     clone: yes
 
 - name: Copy sample inventory
-  command: cp -rfp inventories/sample inventories/my-ansible-nas
+  command: sudo cp -rfp inventories/sample inventories/my-ansible-nas
   args:
     chdir: /home/{{ username }}/ansible-nas
 
@@ -29,9 +29,21 @@
   loop: "{{ services }}"
 
 - name: Run install.sh
-  command: sh /home/{{ username }}/install.sh {{ secret_password | password_hash('sha512') }} {{username}}
+  command: sudo sh /home/{{ username }}/install.sh {{ secret_password | password_hash('sha512') }} {{username}}
   register: shell_result
 
-- name: Print install.sh output
-  debug:
-    msg: "{{ shell_result.stdout_lines }}"
+- name: Run expect script
+  expect:
+    chdir: /home/{{ username }}/ansible-nas
+    command: sudo ./expect_script.exp
+    responses: "{{ secret_password | password_hash('sha512') }}"
+    timeout: 1000
+
+- name: Clean up
+  file:
+    path: /home/{{ username }}/install.sh
+    state: absent
+  file:
+    path: /home/{{ username }}/ansible-nas
+    state: absent
+  

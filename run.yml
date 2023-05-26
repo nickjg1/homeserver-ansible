@@ -12,12 +12,12 @@
   become: yes
 
   roles:
-    # - role: system
+    - role: system
 
-    # - role: geerlingguy.pip
+    - role: geerlingguy.pip
 
-    # - role: geerlingguy.docker
-
-    # - role: geerlingguy.security
+    - role: geerlingguy.docker
 
     - role: containers
+
+    - role: geerlingguy.security
