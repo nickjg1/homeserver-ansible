@@ -54,7 +54,6 @@ extra_packages:
 #
 # SSH (geerlingguy.security)
 #
-email: ngyorgypal@gmail.com
 
 security_ssh_port: 69
 
@@ -75,7 +74,3 @@ security_ssh_permit_empty_password: "no"
 security_ssh_challenge_response_auth: "no"
 security_ssh_gss_api_authentication: "no"
 security_ssh_x11_forwarding: "no"
-
-ip: 10.0.0.224
-
-network_name: nicks-network
