@@ -15,14 +15,6 @@ username: nick
 
 shell: /usr/bin/fish
 
-#
-# Docker apps
-#
-#
-docker_dir: /opt/docker/data
-
-docker_compose_dir: /opt/docker/compose
-
 services:
   - "dashy_enabled : true"
   - "minecraft_server_enabled: true"
@@ -39,6 +31,10 @@ services:
   - "bitwarden_enabled: true"
   - "utorrent_enabled: true"
   - "jackett_enabled: true"
+  - "portainer_enabled: true"
+  - "couchpotato_enabled: true"
+  - "transmission_enabled: true"
+  - "overseerr_enabled: true"
 
 #
 # Packages

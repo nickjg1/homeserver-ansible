@@ -29,7 +29,7 @@
   loop: "{{ services }}"
 
 - name: Run install.sh
-  command: sudo sh /home/{{ username }}/install.sh {{ secret_password | password_hash('sha512') }} {{username}}
+  command: sudo sh /home/{{ username }}/install.sh {{username}}
   register: shell_result
 
 - name: Run expect script
@@ -38,12 +38,10 @@
     command: sudo ./expect_script.exp
     responses: "{{ secret_password | password_hash('sha512') }}"
     timeout: 1000
-
-- name: Clean up
-  file:
-    path: /home/{{ username }}/install.sh
-    state: absent
-  file:
-    path: /home/{{ username }}/ansible-nas
-    state: absent
-  
+# - name: Clean up
+#   file:
+#     path: /home/{{ username }}/install.sh
+#     state: absent
+#   file:
+#     path: /home/{{ username }}/ansible-nas
+#     state: absent

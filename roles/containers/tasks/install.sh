@@ -1,19 +1,15 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-  echo "No password supplied"
-  exit 1
-fi
 
-if [ -z "$2" ]; then
+if [ -z "$1" ]; then
   echo "No username supplied"
   exit 1
 fi
 
-cd /home/$2/ansible-nas
+cd /home/$1/ansible-nas
 
-path=/home/$2/ansible-nas/inventories/my-ansible-nas/group_vars/nas.yml
-path2=/home/$2/ansible-nas/inventories/my-ansible-nas/inventory
+path=/home/$1/ansible-nas/inventories/my-ansible-nas/group_vars/nas.yml
+path2=/home/$1/ansible-nas/inventories/my-ansible-nas/inventory
 
 sed -i '$ d' $path
 sed -i '$ d' $path
@@ -31,7 +27,7 @@ send "$password\r"
 interact
 EOD
 )
-cd /home/$2/ansible-nas
+cd /home/$1/ansible-nas
 sudo echo "$expect_script" > expect_script.exp
 sudo chmod +x expect_script.exp
 
