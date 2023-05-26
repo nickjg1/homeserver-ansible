@@ -39,4 +39,4 @@ ansible-playbook run.yml --ask-vault-pass -K
 
 ## Credit
 
-This uses [ansible-nas](https://github.com/davestephens/ansible-nas) to help with installation of services.
+This uses [ansible-nas](https://github.com/davestephens/ansible-nas) to help with installation of services and [geerlingguy's]https://github.com/geerlingguy ansible roles.
