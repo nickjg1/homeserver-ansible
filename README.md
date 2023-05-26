@@ -36,6 +36,8 @@ Run this command and enter the vault and sudo password when prompted:
 ```
 ansible-playbook run.yml --ask-vault-pass -K
 ```
+## Note
+This changes the default listening port of SSH.
 
 ## Credit
 
