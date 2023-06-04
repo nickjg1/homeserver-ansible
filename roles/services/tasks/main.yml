@@ -1,0 +1,32 @@
+- name: Deploy docker apps
+  ansible.builtin.include_tasks: "roles/services/tasks/{{ item }}.yml"
+  loop:
+    - authelia
+    - traefik
+    - code_server
+    - dashdot
+    - duplicati
+    - filebrowser
+    - guacamole
+    - homarr
+    - jellyfin
+    - jellyseerr
+    - monitoring
+    - mysql
+    - n8n
+    - nextcloud
+    - pihole
+    - portainer
+    - prowlarr
+    - radarr
+    - requestrr
+    - sonarr
+    - syncthing
+    - unmanic
+    - uptime_kuma
+    - transmission
+    - vaultwarden
+    - watchtower
+    - wireguard
+
+- include_tasks: finalcheck.yml

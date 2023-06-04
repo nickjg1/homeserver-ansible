@@ -15,20 +15,33 @@
     msg: Rebooting due to a kernel update
   when: reboot_required_file.stat.exists
 
-- name: Install extra packages
+- name: Install packages
   package:
-    name: "{{ extra_packages }}"
+    name: "{{ packages }}"
     state: present
 
-- name: Set the hostname
-  hostname:
-    name: "{{ inventory_hostname }}"
+- name: Install pip packages
+  ansible.builtin.pip:
+    name: "{{ pip_packages }}"
+    state: present
 
-- name: Replace the hostname entry with our own
+- name: Free port 53
+  become: yes
   ansible.builtin.lineinfile:
-    path: /etc/hosts
-    insertafter: ^127\.0\.0\.1 *localhost
-    line: "127.0.0.1 {{ inventory_hostname }}"
-    owner: root
-    group: root
-    mode: "0644"
+    path: /etc/systemd/resolved.conf
+    regexp: "^#DNS="
+    line: "DNS=1.1.1.1"
+
+- name: Free port 53 Part 2
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: "^#DNSStubListener=yes"
+    line: "DNSStubListener=no"
+
+- name: Create symbolic link
+  shell: sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+- name: Reboot the server
+  ansible.builtin.reboot:
+    msg: "Rebooting server to free port"

@@ -1,0 +1,57 @@
+- name: Create Docker directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+- name: Create data directory
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - "{{ data_dir }}"
+    - "{{ data_dir }}/media"
+    - "{{ data_dir }}/media/movies"
+    - "{{ data_dir }}/media/tv"
+    - "{{ data_dir }}/media/torrents"
+
+- name: Create app directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - "{{ docker_dir }}/authelia"
+    - "{{ docker_dir }}/code_server"
+    - "{{ docker_dir }}/dashdot"
+    - "{{ docker_dir }}/duplicati"
+    - "{{ docker_dir }}/filebrowser"
+    - "{{ docker_dir }}/guacamole"
+    - "{{ docker_dir }}/homarr"
+    - "{{ docker_dir }}/jellyfin"
+    - "{{ docker_dir }}/jellyseerr"
+    - "{{ docker_dir }}/monitoring"
+    - "{{ docker_dir }}/mysql"
+    - "{{ docker_dir }}/n8n"
+    - "{{ docker_dir }}/nextcloud"
+    - "{{ docker_dir }}/pihole"
+    - "{{ docker_dir }}/portainer"
+    - "{{ docker_dir }}/prowlarr"
+    - "{{ docker_dir }}/radarr"
+    - "{{ docker_dir }}/requestrr"
+    - "{{ docker_dir }}/sonarr"
+    - "{{ docker_dir }}/syncthing"
+    - "{{ docker_dir }}/traefik"
+    - "{{ docker_dir }}/transmission"
+    - "{{ docker_dir }}/unmanic"
+    - "{{ docker_dir }}/uptime_kuma"
+    - "{{ docker_dir }}/vaultwarden"
+    - "{{ docker_dir }}/watchtower"
+    - "{{ docker_dir }}/wireguard"

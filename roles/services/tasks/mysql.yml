@@ -1,0 +1,24 @@
+- name: Create MySQL container
+  community.docker.docker_container:
+    name: mysql
+    image: mysql:latest
+    env:
+      PUID: "{{ puid }}"
+      PGID: "{{ pgid }}"
+    state: started
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/mysql/config:/etc/mysql/conf.d"
+      - "{{ data_dir }}/mysql/database:/var/lib/mysql"
+      - "{{ data_dir }}/mysql/dbbackups:/var/backups/mysql"
+
+    restart_policy: unless-stopped
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_password }}"
+      MYSQL_DATABASE: "nick"
+      MYSQL_USER: "nick"
+      MYSQL_PASSWORD: "{{ mysql_password }}"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "homelab"

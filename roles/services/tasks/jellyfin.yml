@@ -1,0 +1,31 @@
+---
+- name: Create jellyfin container
+  community.docker.docker_container:
+    name: jellyfin
+    image: lscr.io/linuxserver/jellyfin
+    pull: true
+    state: started
+    restart_policy: unless-stopped
+    env:
+      PUID: "{{ puid }}"
+      PGID: "{{ pgid }}"
+      TZ: "{{ timezone }}"
+      JELLYFIN_PublishedServerUrl: "{{ ip_address }}"
+    volumes:
+      - "{{ docker_dir }}/jellyfin/config:/config"
+      - "{{ data_dir }}/media:/data/media"
+    networks:
+      - name: homelab
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.jellyfin.entrypoints: "http"
+      traefik.http.routers.jellyfin.rule: "Host(`jellyfin.{{ domain }}`)"
+      traefik.http.middlewares.jellyfin-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.jellyfin.middlewares: "jellyfin-https-redirect"
+      traefik.http.routers.jellyfin-secure.entrypoints: "https"
+      traefik.http.routers.jellyfin-secure.rule: "Host(`jellyfin.{{ domain }}`)"
+      traefik.http.routers.jellyfin-secure.tls: "true"
+      traefik.http.routers.jellyfin-secure.service: "jellyfin"
+      traefik.http.routers.jellyfin-secure.middlewares: "authelia@docker"
+      traefik.http.services.jellyfin.loadbalancer.server.port: "8096"
+      traefik.docker.network: "homelab"

@@ -1,0 +1,64 @@
+---
+- name: Add required permissions to data and docker_apps directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    recurse: true
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+  loop:
+    - "{{ data_dir }}"
+    - "{{ docker_dir }}/authelia"
+    - "{{ docker_dir }}/bazarr"
+    - "{{ docker_dir }}/code_server"
+    - "{{ docker_dir }}/dashdot"
+    - "{{ docker_dir }}/deluge"
+    - "{{ docker_dir }}/duplicati"
+    - "{{ docker_dir }}/filebrowser"
+    - "{{ docker_dir }}/guacamole"
+    - "{{ docker_dir }}/heimdall"
+    - "{{ docker_dir }}/homarr"
+    - "{{ docker_dir }}/jellyfin"
+    - "{{ docker_dir }}/jellyseerr"
+    - "{{ docker_dir }}/monitoring"
+    - "{{ docker_dir }}/mysql"
+    - "{{ docker_dir }}/n8n"
+    - "{{ docker_dir }}/nextcloud"
+    - "{{ docker_dir }}/portainer"
+    - "{{ docker_dir }}/prowlarr"
+    - "{{ docker_dir }}/qbittorrent"
+    - "{{ docker_dir }}/radarr"
+    - "{{ docker_dir }}/requestrr"
+    - "{{ docker_dir }}/sonarr"
+    - "{{ docker_dir }}/syncthing"
+    - "{{ docker_dir }}/transmission"
+    - "{{ docker_dir }}/traefik"
+    - "{{ docker_dir }}/unmanic"
+    - "{{ docker_dir }}/uptime_kuma"
+    - "{{ docker_dir }}/vaultwarden"
+    - "{{ docker_dir }}/watchtower"
+    - "{{ docker_dir }}/wireguard"
+
+- name: Reboot the server
+  ansible.builtin.reboot:
+    msg: "Rebooting server to finish setup"
+
+- name: Check if traefik is working properly with authelia middleware
+  ansible.builtin.uri:
+    url: "https://wg.{{ domain }}"
+  ignore_errors: true
+  register: traefik_authelia_check
+
+- name: Wait to ensure authelia is up and running
+  ansible.builtin.wait_for:
+    timeout: 10
+  when: traefik_authelia_check.status != 200
+
+- name: Restart traefik container to ensure it can find authelia middleware
+  community.docker.docker_container:
+    name: traefik
+    state: started
+    restart: true
+    timeout: 300
+  when: traefik_authelia_check.status != 200

@@ -1,0 +1,2 @@
+- include_tasks: dirs.yml
+- include_tasks: install.yml

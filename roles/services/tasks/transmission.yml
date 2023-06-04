@@ -1,0 +1,44 @@
+---
+- name: Create transmission container
+  community.docker.docker_container:
+    name: transmission
+    image: haugene/transmission-openvpn
+    restart_policy: unless-stopped
+    state: started
+    networks:
+      - name: homelab
+    privileged: yes
+    devices:
+      - "/dev/net/tun"
+    sysctls:
+      "net.ipv6.conf.all.disable_ipv6": "0"
+    ports:
+      - "9091:9091"
+      - "8888:8888"
+    volumes:
+      - "{{ docker_dir }}/transmission/config:/config"
+      - "{{ data_dir }}/media:/data"
+    env:
+      PUID: "{{ puid }}"
+      PGID: "{{ pgid }}"
+      TZ: "{{ timezone }}"
+      OPENVPN_PROVIDER: "{{vpn_provider}}"
+      OPENVPN_CONFIG: "{{vpn_config}}"
+      OPENVPN_USERNAME: "{{vpn_username}}"
+      OPENVPN_PASSWORD: "{{vpn_password}}"
+      LOCAL_NETWORK: "{{local_network}}"
+    capabilities:
+      - NET_ADMIN
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.transmission.entrypoints: "http"
+      traefik.http.routers.transmission.rule: "Host(`transmission.{{ domain }}`)"
+      traefik.http.middlewares.transmission-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.transmission.middlewares: "transmission-https-redirect"
+      traefik.http.routers.transmission-secure.entrypoints: "https"
+      traefik.http.routers.transmission-secure.rule: "Host(`transmission.{{ domain }}`)"
+      traefik.http.routers.transmission-secure.tls: "true"
+      traefik.http.routers.transmission-secure.service: "transmission"
+      traefik.http.routers.transmission-secure.middlewares: "authelia@docker"
+      traefik.http.services.transmission.loadbalancer.server.port: "9091"
+      traefik.docker.network: "homelab"

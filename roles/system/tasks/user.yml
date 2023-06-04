@@ -3,7 +3,7 @@
   set_fact:
     sudo_group: sudo
 
-- name: Ensure the necessary groupsexists
+- name: Ensure the necessary groups exists
   group:
     name: "{{ item }}"
     state: present
@@ -14,7 +14,7 @@
 - name: Create a login user
   user:
     name: "{{ username }}"
-    password: "{{ secret_password | password_hash('sha512') }}"
+    password: "{{user_password}}"
     groups:
       - "{{ sudo_group }}"
       - docker

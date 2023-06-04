@@ -1,0 +1,36 @@
+---
+- name: Create pihole container
+  community.docker.docker_container:
+    name: pihole
+    image: cbcrowe/pihole-unbound:latest
+    state: started
+    restart_policy: unless-stopped
+    networks_cli_compatible: yes
+    env:
+      PUID: "{{ puid }}"
+      PGID: "{{ pgid }}"
+      TZ: "{{ timezone }}"
+      WEBPASSWORD: "{{pihole_password}}"
+    volumes:
+      - "{{ docker_dir }}/pihole/config:/config"
+      - "{{ data_dir }}/pihole:/etc/dnsmasq.d"
+    networks:
+      - name: homelab
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "853:853"
+    capabilities:
+      - NET_ADMIN
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.pihole.entrypoints: "http"
+      traefik.http.routers.pihole.rule: "Host(`pihole.{{ domain }}`)"
+      traefik.http.middlewares.pihole-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.pihole.middlewares: "pihole-https-redirect"
+      traefik.http.routers.pihole-secure.entrypoints: "https"
+      traefik.http.routers.pihole-secure.rule: "Host(`pihole.{{ domain }}`)"
+      traefik.http.routers.pihole-secure.tls: "true"
+      traefik.http.routers.pihole-secure.service: "pihole"
+      traefik.http.routers.pihole-secure.middlewares: "authelia@docker"
+      traefik.http.services.pihole.loadbalancer.server.port: "80"

@@ -1,44 +1,67 @@
-#
-# Misc
-#
-hostname: "{{ inventory_hostname }}"
+---
+#Please see variablehelp.md if you are confused
 
-timezone: America/New_York
+username: "<your username at setup>"
 
-ntp_timezone: "{{ timezone }}"
+user_password: "<your password at setup>"
 
-locale: en_US.UTF-8
+puid: "<id>"
 
-keyboard_layout: us
+pgid: "<id>"
 
-username: nick
+ip_address: "<your server IP address>"
+
+timezone: "<your timezone>"
+
+domain: "<your domain name>"
+
+cloudflare_email: "<your cloudflare email>"
+
+cloudflare_api_key: "<your global cloudflare api key>"
+
+traefik_basic_auth_hash: "<traefik hashed username and pass>"
+
+jwt_secret: "<athelia jwt secret>"
+
+authelia_sqlite_encryption_key: "<authelia encryption key>"
+
+google_mail: "<google email>"
+
+google_insecure_app_pass: "<app password for google account>"
+
+authelia_admin_mail: "<email for authelia>"
+
+authelia_admin_argon2id_pass: "<authelia argon2 password>"
+
+vaultwarden_admin_argon2id_pass: "<vaultwarden admin page argon2 password>"
+
+wg_password: "<wireguard vpn password>"
+
+codeserver_password: "<code server password>"
+
+pihole_password: "<pihole password>"
+
+mysql_password: "<mysql password>"
+
+vpn_provider: "<your vpn provider>"
+
+vpn_config: "<location of vpn server>"
+
+vpn_username: "<vpn provider username>"
+
+vpn_password: "<vpn provider password>"
+
+local_network: "<your local network>"
 
 shell: /usr/bin/fish
 
-services:
-  - "dashy_enabled : true" #8082
-  - "minecraft_server_enabled: true"
-  - "homeassistant_enabled: true" #8123
-  - "homeassistant_available_externally: true"
-  - "firefly_enabled: true" #8066
-  - "traefik_enabled: true" #8083
-  - "watchtower_enabled: true"
-  - "radarr_enabled: true" #7878
-  - "sonarr_enabled: true" #8989
-  - "jellyfin_enabled: true" #8896
-  - "sabnzbd_enabled: true" #18080
-  - "nextcloud_enabled: true" #8080
-  - "utorrent_enabled: true" #8111
-  - "jackett_enabled: true" #9117
-  - "portainer_enabled: true" #9000
-  - "couchpotato_enabled: true" #5050
-  - "transmission_enabled: true" #9092
-  - "overseerr_enabled: true" #5055
-
-#
-# Packages
-#
-extra_packages:
+packages:
+  - unzip
+  - wget
+  - curl
+  - git
+  - python3
+  - python3-pip
   - fish
   - speedtest-cli
   - htop
@@ -48,25 +71,32 @@ extra_packages:
   - neovim
   - tmux
   - expect
+
+pip_packages:
   - ansible
+  - github3.py
+  - docker
+
+docker_dependencies:
+  - ca-certificates
+  - gnupg
+  - curl
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
 
 #
 # SSH (geerlingguy.security)
 #
-email: ngorgypal@gmail
-
-security_ssh_port: 69
-
+security_ssh_port: 69 #ssh listening port (default 22)
 security_sudoers_passwordless: ["{{ username }}"]
-
 security_autoupdate_reboot: true
-
-security_autoupdate_mail_to: "{{ email }}"
-
 security_autoupdate_reboot_time: "23:00"
-
 security_autoupdate_mail_on_error: false
-
 security_ssh_password_authentication: "no"
 security_ssh_permit_root_login: "no"
 security_ssh_usedns: "no"

@@ -1,44 +1,67 @@
-# Home Server Ansible Configuration
+# Home Server Ansible Playbooks
 
-This repository contains Ansible files and configurations for managing and automating tasks on my home server. This playbook assumes a fresh install of Ubuntu Server 22.04.2 LTS.
+## Ansible Playbooks to help you set up your own server at home
+
+These playbooks will configure and update Ubuntu, install Docker, and deploy the containers.
+It uses Traefik as it's reverse proxy manager and Authelia for Two Factor Authentication. See the services list [here](serviceslist.md).
+
+## Acknowledgments
+
+This project is based heavily on [Rishav Nandi's Ansible Homelab.](https://github.com/rishavnandi/ansible_homelab)
+
+## Prerequisites
+
+In order for you to use these playbooks, you'll need a couple things:
+
+- Basic knowledge of internet protocols (SSH, TCP/UDP etc.), Ansible and Linux
+- Router with ports 80 and 443 forwarded to your servers IP address
+- Google Account
+- Domain name
+- Cloudflare account with your domain name [nameservers](https://www.youtube.com/watch?v=uqlo3lCqiy0) pointed to their DNS Servers
+- A [supported VPN](https://haugene.github.io/docker-transmission-openvpn/supported-providers/) to use with Transmission
+- A fresh install of Ubuntu Server LTS 22.04
 
 ## Setup
 
-You will need to create an SSH key and copy it to the server. This can be done with the following commands:
+Once you've installed Ubuntu, you'll need an SSH Key for Ansible to use. You will need to create an one and copy it to the server. This can be done with the following commands:
 
-```
-ssh-keygen -o -a 100 -t ed25519 -f ~/.ssh/homeserver -C <your_email>
+```bash
+ssh-keygen -o -a 100 -t ed25519 -f <path to ssh file> -C <your_email>
 ssh-copy-id -i ~/.ssh/homeserver <user>@<server>
 ```
 
+Note: I'd recommend storing the ssh file at `~/.ssh/homeserver`
+
 Clone this repository to your local machine and run the following command to install the required roles:
 
-```
+```bash
 git clone https://github.com/nickjg1/homeserver-ansible
 ansible-galaxy install -r requirements.yml
 ```
 
-Create a secret file in `group_vars/all/secret.yml` to store sensitive information such as passwords and API keys. Create a `secret_password` variable.
-
-```
-cd group_vars/all
-ansible-vault create secret.yml
-```
-
 ## Configuration
 
-Make all the necessary changes to `group_vars/all/vars.yml` and `hosts` to match your environment. Extra packages and services can be added to `group_vars/all/vars.yml`.
+Make all the necessary changes to the `group_vars/all/vars.yml` and `hosts/hosts` files to match your environment. Extra packages can be added to `group_vars/all/vars.yml`. Any unwanted services can be removed in the `services/tasks/main.yml` file. See [variable help](variablehelp.md) for more information.
 
-## Running
+## Notes and Disclaimers
 
-Run this command and enter the vault and sudo password when prompted:
+This playbook opens your server up to the internet and potentially malicious attacks. Two factor authentication, Cloudflare and [Jeff Geerling's Security Role](https://github.com/geerlingguy/ansible-role-security) offer good layers of protection, but it's always good practice to be mindful of the risks. Further configuration in Cloudflare can strengthen your security.
 
+This also changes the default listening port of SSH to 69. It can be changed in `group_vars/all/vars.yml`.
+
+## Installation
+
+Run this command and enter the sudo password when prompted:
+
+```bash
+ansible-playbook run.yml -K
 ```
-ansible-playbook run.yml --ask-vault-pass -K
-```
-## Note
-This changes the default listening port of SSH.
+
+## Post Installation and Troubleshooting
+
+If you need help setting services up or have any issues with your installation, see [post installation help](postinstallation.md).
 
 ## Credit
 
-This uses [ansible-nas](https://github.com/davestephens/ansible-nas) to help with installation of services and [geerlingguy's](https://github.com/geerlingguy) ansible roles.
+- [Rishav Nandi](https://github.com/rishavnandi)
+- [Jeff Geerling](https://github.com/geerlingguy)
