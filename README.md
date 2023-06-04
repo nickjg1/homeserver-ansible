@@ -32,11 +32,30 @@ ssh-copy-id -i ~/.ssh/homeserver <user>@<server>
 
 Note: I'd recommend storing the ssh file at `~/.ssh/homeserver`
 
-Clone this repository to your local machine and run the following command to install the required roles:
+Fork this repository, then clone it to your local machine and run the following command to install the required roles:
 
 ```bash
 git clone https://github.com/nickjg1/homeserver-ansible
 ansible-galaxy install -r requirements.yml
+```
+
+Change directories and create an ansible vault file with the following command and enter a password when prompted:
+
+```bash
+cd homeserver-ansible
+ansible-vault create group_vars/all/vault.yml
+```
+
+Open the vault file with the following command:
+
+```bash
+ansible-vault edit group_vars/all/vault.yml
+```
+
+Paste the following into the vault file and replace the values with your own:
+
+```yaml
+user_password: "<your sudo password>"
 ```
 
 ## Configuration
@@ -54,8 +73,10 @@ This also changes the default listening port of SSH to 69. It can be changed in 
 Run this command and enter the sudo password when prompted:
 
 ```bash
-ansible-playbook run.yml -K
+ansible-playbook run.yml -K --ask-vault-pass
 ```
+
+Enter the vault and sudo passwords when prompted.
 
 ## Post Installation and Troubleshooting
 

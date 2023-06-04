@@ -5,8 +5,6 @@ Remove <> tags but keep your variables inside of the "". Please be mindful that 
 
 `username`: Your Ubuntu username you chose at setup.
 
-`user_password`: Your Ubuntu password you chose at setup.
-
 `puid`: Run the `id` command on your server and use the value in the `uid` field.
 
 `pgid`: Run the `id` command on your server and use the value in the `gid` field.

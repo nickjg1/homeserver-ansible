@@ -3,8 +3,6 @@
 
 username: "<your username at setup>"
 
-user_password: "<your password at setup>"
-
 puid: "<id>"
 
 pgid: "<id>"
