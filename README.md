@@ -3,7 +3,9 @@
 ## Ansible Playbooks to help you set up your own server at home
 
 These playbooks will configure and update Ubuntu, install Docker, and deploy the containers.
-It uses Traefik as it's reverse proxy manager and Authelia for Two Factor Authentication. See the services list [here](serviceslist.md).
+It uses Traefik as it's reverse proxy manager and Authelia for Two Factor Authentication. See the services list [here](serviceslist.md). All of the services will be accessible at https://\<service>.\<yourdomain>
+
+**Important**: Make sure you set SSL/TLS encryption mode to **full** in Cloudflare.
 
 ## Acknowledgments
 
@@ -70,13 +72,11 @@ This also changes the default listening port of SSH to 69. It can be changed in 
 
 ## Installation
 
-Run this command and enter the sudo password when prompted:
+Run this command, enter your sudo password and vault password when prompted:
 
 ```bash
 ansible-playbook run.yml -K --ask-vault-pass
 ```
-
-Enter the vault and sudo passwords when prompted.
 
 ## Post Installation and Troubleshooting
 
