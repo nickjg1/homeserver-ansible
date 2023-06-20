@@ -72,10 +72,9 @@ This also changes the default listening port of SSH to 69. It can be changed in 
 
 ## Installation
 
-Run these commands, enter your sudo password and vault password when prompted:
+Run this command, enter your sudo password and vault password when prompted:
 
 ```bash
-ansible-galaxy install -r requirements.yml
 ansible-playbook run.yml -K --ask-vault-pass
 ```
 
