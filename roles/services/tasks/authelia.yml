@@ -47,9 +47,9 @@
             policy: two_factor
           - domain: "guac.{{ domain }}"
             policy: two_factor
-          - domain: "heimdall.{{ domain }}"
-            policy: two_factor
           - domain: "homarr.{{ domain }}"
+            policy: two_factor
+          - domain: "homeassistant.{{ domain }}"
             policy: two_factor
           - domain: "jellyfin.{{ domain }}"
             policy: two_factor
@@ -129,8 +129,8 @@
     content: |
       ---
       users:
-        nick:
-          displayname: nick
+        admin:
+          displayname: admin
           email: "{{ authelia_admin_mail }}"
           password: "{{ authelia_admin_argon2id_pass }}"
           groups:

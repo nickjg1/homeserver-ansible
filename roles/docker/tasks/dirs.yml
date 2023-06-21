@@ -35,6 +35,7 @@
     - "{{ docker_dir }}/filebrowser"
     - "{{ docker_dir }}/guacamole"
     - "{{ docker_dir }}/homarr"
+    - "{{ docker_dir }}/homeassistant"
     - "{{ docker_dir }}/jellyfin"
     - "{{ docker_dir }}/jellyseerr"
     - "{{ docker_dir }}/monitoring"

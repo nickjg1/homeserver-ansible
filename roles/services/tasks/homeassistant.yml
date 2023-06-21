@@ -1,0 +1,27 @@
+---
+- name: Create homeassistant container
+  community.docker.docker_container:
+    name: homeassistant
+    image: lscr.io/linuxserver/homeassistant:latest
+    env:
+      PUID: "{{ puid }}"
+      PGID: "{{ pgid }}"
+      TZ: "{{ timezone }}"
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/homeassistant/config:/config"
+    restart_policy: unless-stopped
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.homeassistant.entrypoints: "http"
+      traefik.http.routers.homeassistant.rule: "Host(`homeassistant.{{ domain }}`)"
+      traefik.http.middlewares.homeassistant-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.homeassistant.middlewares: "homeassistant-https-redirect"
+      traefik.http.routers.homeassistant-secure.entrypoints: "https"
+      traefik.http.routers.homeassistant-secure.rule: "Host(`homeassistant.{{ domain }}`)"
+      traefik.http.routers.homeassistant-secure.tls: "true"
+      traefik.http.routers.homeassistant-secure.service: "homeassistant"
+      traefik.http.routers.homeassistant-secure.middlewares: "authelia@docker"
+      traefik.http.services.homeassistant.loadbalancer.server.port: "8123"
+      traefik.docker.network: "homelab"
