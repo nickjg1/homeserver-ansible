@@ -10,6 +10,7 @@ These playbooks set up the follow services:
 - Filebrowser
 - Guacamole
 - Homarr
+- Homeassistant
 - Jellyfin
 - Jellyseerr
 - Monitoring (grafana and prometheus)
