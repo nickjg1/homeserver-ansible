@@ -7,8 +7,7 @@
       PUID: "{{ puid }}"
       PGID: "{{ pgid }}"
       TZ: "{{ timezone }}"
-    networks:
-      - name: homelab
+    network_mode: host
     volumes:
       - "{{ docker_dir }}/homeassistant/config:/config"
     restart_policy: unless-stopped
