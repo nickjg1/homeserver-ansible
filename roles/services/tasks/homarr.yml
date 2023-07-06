@@ -25,8 +25,3 @@
       traefik.http.routers.homarr-secure.middlewares: "authelia@docker"
       traefik.http.services.homarr.loadbalancer.server.port: "7575"
       traefik.docker.network: "homelab"
-######################## ADD CONFIG FILE TO SRC PATH ########################
-# - name: Copy homarr config file
-#   copy:
-#     src: "../../config/homarr/default.json"
-#     dest: "{{ docker_dir }}/homarr/configs/default.json"

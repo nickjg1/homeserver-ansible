@@ -16,8 +16,8 @@
     restart_policy: unless-stopped
     env:
       MYSQL_ROOT_PASSWORD: "{{ mysql_password }}"
-      MYSQL_DATABASE: "nick"
-      MYSQL_USER: "nick"
+      MYSQL_DATABASE: "admin"
+      MYSQL_USER: "admin"
       MYSQL_PASSWORD: "{{ mysql_password }}"
     labels:
       traefik.enable: "true"
