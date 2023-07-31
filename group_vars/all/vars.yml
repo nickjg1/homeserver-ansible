@@ -53,6 +53,10 @@ local_network: "<your local network>"
 
 shell: /usr/bin/fish
 
+docker_dir: /home/{{ username }}/docker
+
+data_dir: /home/{{ username }}/data
+
 packages:
   - unzip
   - wget
