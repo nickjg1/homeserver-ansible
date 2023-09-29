@@ -20,8 +20,10 @@ In order for you to use these playbooks, you'll need a couple things:
 - Google Account
 - Domain name
 - Cloudflare account with your domain name [nameservers](https://www.youtube.com/watch?v=uqlo3lCqiy0) pointed to their DNS Servers
-- A [supported VPN](https://haugene.github.io/docker-transmission-openvpn/supported-providers/) to use with Transmission
+- A [supported VPN](https://haugene.github.io/docker-transmission-openvpn/supported-providers/) to use with Transmission*
 - A fresh install of Ubuntu Server LTS 22.04
+
+*If you don't plan on using Transmission then the VPN is not needed.
 
 ## Setup
 
