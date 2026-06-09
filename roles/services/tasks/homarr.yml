@@ -1,0 +1,32 @@
+---
+# Homarr 1.x (homarr-labs fork - ajnart/homarr 0.x is unmaintained and was
+# crash-looping its healthcheck). 1.x uses a SINGLE /appdata volume and REQUIRES
+# SECRET_ENCRYPTION_KEY (32-byte hex) to encrypt integrations at rest. The 0.x
+# configs/icons do NOT auto-import; the dashboard is rebuilt in the new UI.
+- name: Create homarr container
+  community.docker.docker_container:
+    name: homarr
+    image: ghcr.io/homarr-labs/homarr:v1.64.0
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    env:
+      SECRET_ENCRYPTION_KEY: "{{ homarr_encryption_key }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ docker_dir }}/homarr:/appdata"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.homarr.entrypoints: "http"
+      traefik.http.routers.homarr.rule: "Host(`homarr.{{ domain }}`)"
+      traefik.http.middlewares.homarr-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.homarr.middlewares: "homarr-https-redirect"
+      traefik.http.routers.homarr-secure.entrypoints: "https"
+      traefik.http.routers.homarr-secure.rule: "Host(`homarr.{{ domain }}`)"
+      traefik.http.routers.homarr-secure.tls: "true"
+      traefik.http.routers.homarr-secure.service: "homarr"
+      traefik.http.routers.homarr-secure.middlewares: "authelia@docker"
+      traefik.http.services.homarr.loadbalancer.server.port: "7575"
+      traefik.docker.network: "homelab"

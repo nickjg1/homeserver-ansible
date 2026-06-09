@@ -1,0 +1,10 @@
+.DS_Store
+
+# Secrets & host-specific real values, never commit
+group_vars/all/vault.yml
+group_vars/all/local.yml
+hosts/hosts
+
+# Ansible noise
+*.retry
+.vault_pass

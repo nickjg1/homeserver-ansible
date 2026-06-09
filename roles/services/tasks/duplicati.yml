@@ -1,0 +1,30 @@
+---
+- name: Create duplicati container
+  community.docker.docker_container:
+    name: duplicati
+    image: lscr.io/linuxserver/duplicati:v2.3.0.1_stable_2026-04-24-ls293
+    state: started
+    restart_policy: unless-stopped
+    volumes:
+      - "{{ docker_dir }}/duplicati/config:/config"
+      - "{{ docker_dir }}/duplicati/backups:/backups"
+      - "/:/source"
+    networks:
+      - name: homelab
+    env:
+      PUID: "0"
+      PGID: "0"
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.duplicati.entrypoints: "http"
+      traefik.http.routers.duplicati.rule: "Host(`duplicati.{{ domain }}`)"
+      traefik.http.middlewares.duplicati-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.duplicati.middlewares: "duplicati-https-redirect"
+      traefik.http.routers.duplicati-secure.entrypoints: "https"
+      traefik.http.routers.duplicati-secure.rule: "Host(`duplicati.{{ domain }}`)"
+      traefik.http.routers.duplicati-secure.tls: "true"
+      traefik.http.routers.duplicati-secure.service: "duplicati"
+      traefik.http.routers.duplicati-secure.middlewares: "authelia@docker"
+      traefik.http.services.duplicati.loadbalancer.server.port: "8200"
+      traefik.docker.network: "homelab"

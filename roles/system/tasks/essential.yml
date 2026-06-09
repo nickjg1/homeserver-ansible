@@ -1,0 +1,47 @@
+---
+- name: Update and upgrade packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+    autoremove: yes
+
+- name: Check if reboot required
+  stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+
+- name: Reboot if required
+  reboot:
+    msg: Rebooting due to a kernel update
+  when: reboot_required_file.stat.exists
+
+- name: Install packages
+  package:
+    name: "{{ packages }}"
+    state: present
+
+- name: Install pip packages
+  ansible.builtin.pip:
+    name: "{{ pip_packages }}"
+    state: present
+
+- name: Free port 53
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: "^#DNS="
+    line: "DNS=1.1.1.1"
+
+- name: Free port 53 Part 2
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: "^#DNSStubListener=yes"
+    line: "DNSStubListener=no"
+
+- name: Create symbolic link
+  shell: sudo ln -sf /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+- name: Reboot the server
+  ansible.builtin.reboot:
+    msg: "Rebooting server to free port"

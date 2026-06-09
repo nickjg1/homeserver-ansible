@@ -1,0 +1,32 @@
+---
+# Seerr (ghcr.io/seerr-team/seerr) is the unified Jellyseerr + Overseerr fork for
+# media requests. Config persists in the seerr/config volume and the service is
+# served at seerr.{{ domain }}.
+- name: Create seerr container
+  community.docker.docker_container:
+    name: seerr
+    image: ghcr.io/seerr-team/seerr:v3.3.0
+    state: started
+    restart_policy: unless-stopped
+    init: true
+    user: "{{ puid }}:{{ pgid }}"
+    volumes:
+      - "{{ docker_dir }}/seerr/config:/app/config"
+    networks:
+      - name: homelab
+    env:
+      LOG_LEVEL: info
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.seerr.entrypoints: "http"
+      traefik.http.routers.seerr.rule: "Host(`seerr.{{ domain }}`)"
+      traefik.http.middlewares.seerr-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.seerr.middlewares: "seerr-https-redirect"
+      traefik.http.routers.seerr-secure.entrypoints: "https"
+      traefik.http.routers.seerr-secure.rule: "Host(`seerr.{{ domain }}`)"
+      traefik.http.routers.seerr-secure.tls: "true"
+      traefik.http.routers.seerr-secure.service: "seerr"
+      traefik.http.routers.seerr-secure.middlewares: "authelia@docker"
+      traefik.http.services.seerr.loadbalancer.server.port: "5055"
+      traefik.docker.network: "homelab"

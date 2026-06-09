@@ -1,0 +1,33 @@
+---
+# Diun (Docker Image Update Notifier) is a notify-only image update watcher.
+# It only WATCHES and NOTIFIES - it never touches a running container. When an
+# update is available it notifies you; you then bump the pinned tag in this repo
+# and redeploy deliberately.
+#
+# It watches every running container by default (DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT).
+# To exclude a container, add the label  diun.enable: "false"  to it.
+- name: Create diun container
+  community.docker.docker_container:
+    name: diun
+    image: crazymax/diun:4.33.0
+    state: started
+    restart_policy: unless-stopped
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ docker_dir }}/diun:/data"
+    env:
+      TZ: "{{ timezone }}"
+      LOG_LEVEL: "info"
+      # Check once a day at 06:00; change cron as you like.
+      DIUN_WATCH_SCHEDULE: "0 6 * * *"
+      DIUN_WATCH_FIRSTCHECKNOTIF: "false"
+      DIUN_PROVIDERS_DOCKER: "true"
+      DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: "true"
+      # Push notifications via ntfy. The topic name is the only access control on
+      # ntfy.sh (anyone who knows it can read/post), so it lives in vault.yml.
+      # Subscribe in the ntfy mobile/web app to this topic to receive alerts.
+      DIUN_NOTIF_NTFY_ENDPOINT: "https://ntfy.sh"
+      DIUN_NOTIF_NTFY_TOPIC: "{{ diun_ntfy_topic }}"
+      DIUN_NOTIF_NTFY_PRIORITY: "3"
+    networks:
+      - name: homelab

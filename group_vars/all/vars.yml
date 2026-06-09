@@ -1,0 +1,61 @@
+---
+# Shared, non-secret config (committed).
+# Host-specific values live in group_vars/all/local.yml (gitignored).
+# Secrets live in group_vars/all/vault.yml (ansible-vault, gitignored).
+# See variablehelp.md and vars.yml.example.
+
+# Data layout (derived from username; override in local.yml if your paths differ)
+docker_dir: "/home/{{ username }}/docker_apps"
+data_dir: "/home/{{ username }}/data"
+
+shell: /usr/bin/fish
+
+packages:
+  - unzip
+  - wget
+  - curl
+  - git
+  - python3
+  - python3-pip
+  - fish
+  - speedtest-cli
+  - htop
+  - neofetch
+  - neovim
+  - tmux
+  - expect
+
+pip_packages:
+  - github3.py
+  # docker SDK for the community.docker modules. requests is pinned because
+  # requests >= 2.32 breaks the SDK with "Not supported URL scheme http+docker".
+  - requests<2.32
+  - docker
+
+docker_dependencies:
+  - ca-certificates
+  - gnupg
+  - curl
+
+docker_packages:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+
+#
+# SSH (geerlingguy.security)
+#
+security_ssh_port: 69 #ssh listening port (default 22)
+security_sudoers_passwordless: ["{{ username }}"]
+security_autoupdate_reboot: true
+security_autoupdate_reboot_time: "23:00"
+security_autoupdate_mail_on_error: false
+security_ssh_password_authentication: "no"
+security_ssh_permit_root_login: "no"
+security_ssh_usedns: "no"
+security_ssh_permit_empty_password: "no"
+security_ssh_challenge_response_auth: "no"
+security_ssh_gss_api_authentication: "no"
+security_ssh_x11_forwarding: "no"

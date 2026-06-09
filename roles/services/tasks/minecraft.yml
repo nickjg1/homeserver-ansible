@@ -1,0 +1,39 @@
+---
+# Paper Minecraft server with crossplay for Bedrock clients.
+#
+# Geyser + Floodgate (auto-downloaded via the PLUGINS env) let Bedrock Edition
+# players join this Java server: Geyser proxies Bedrock clients and listens on
+# UDP 19132, Floodgate lets them connect without a Java account.
+#
+# Ports: 25565/tcp = Java, 19132/udp = Bedrock. To let players connect from the
+# internet, forward both ports on your router (or expose them with a tunnel).
+#
+# World data lives under {{ docker_dir }}/minecraft so it survives container
+# recreation. The newest Minecraft version is selected by VERSION: LATEST.
+- name: Create minecraft container
+  community.docker.docker_container:
+    name: minecraft
+    image: itzg/minecraft-server:latest
+    state: started
+    restart_policy: unless-stopped
+    interactive: true
+    tty: true
+    networks:
+      - name: homelab
+    ports:
+      - "25565:25565"
+      - "19132:19132/udp"
+    volumes:
+      - "{{ docker_dir }}/minecraft:/data"
+    env:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      VERSION: "LATEST"
+      MEMORY: "4G"
+      OPS: "{{ minecraft_ops }}"
+      ENABLE_WHITELIST: "false"
+      ENFORCE_WHITELIST: "false"
+      # Auto-download Geyser + Floodgate (Bedrock crossplay) on startup.
+      PLUGINS: |-
+        https://download.geysermc.org/v2/projects/geyser/versions/latest/builds/latest/downloads/spigot
+        https://download.geysermc.org/v2/projects/floodgate/versions/latest/builds/latest/downloads/spigot

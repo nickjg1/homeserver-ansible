@@ -1,0 +1,31 @@
+---
+- name: Create codeserver container
+  community.docker.docker_container:
+    name: codeserver
+    image: lscr.io/linuxserver/code-server:4.123.0-ls342
+    state: started
+    restart_policy: unless-stopped
+    volumes:
+      - "/home/{{ username }}/:/home/{{ username }}"
+      - "{{ docker_dir }}/code_server/config:/config"
+    networks:
+      - name: homelab
+    env:
+      PUID: "{{ puid | string }}"
+      PGID: "{{ pgid | string }}"
+      PASSWORD: "{{ codeserver_password }}"
+      SUDO_PASSWORD: "{{ codeserver_password }}"
+      TZ: "{{ timezone }}"
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.code.entrypoints: "http"
+      traefik.http.routers.code.rule: "Host(`code.{{ domain }}`)"
+      traefik.http.middlewares.code-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.code.middlewares: "code-https-redirect"
+      traefik.http.routers.code-secure.entrypoints: "https"
+      traefik.http.routers.code-secure.rule: "Host(`code.{{ domain }}`)"
+      traefik.http.routers.code-secure.tls: "true"
+      traefik.http.routers.code-secure.service: "code"
+      traefik.http.routers.code-secure.middlewares: "authelia@docker"
+      traefik.http.services.code.loadbalancer.server.port: "8443"
+      traefik.docker.network: "homelab"

@@ -1,0 +1,7 @@
+---
+roles:
+  - name: geerlingguy.security
+
+collections:
+  - name: community.docker
+  - name: community.general

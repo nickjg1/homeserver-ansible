@@ -1,0 +1,22 @@
+---
+# LinuxServer MariaDB. It stores all data under a single /config mount. The
+# container is named "mysql" for backwards compatibility with services that
+# reference that hostname.
+- name: Create mariadb container
+  community.docker.docker_container:
+    name: mysql
+    image: lscr.io/linuxserver/mariadb:11.4.12-r0-ls220
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/mysql/config:/config"
+    env:
+      PUID: "{{ puid | string }}"
+      PGID: "{{ pgid | string }}"
+      TZ: "{{ timezone }}"
+      MYSQL_ROOT_PASSWORD: "{{ mysql_password }}"
+      MYSQL_DATABASE: "{{ username }}"
+      MYSQL_USER: "{{ username }}"
+      MYSQL_PASSWORD: "{{ mysql_password }}"

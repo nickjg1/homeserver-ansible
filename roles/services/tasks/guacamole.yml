@@ -1,0 +1,35 @@
+---
+- name: Create guacamole container
+  community.docker.docker_container:
+    name: guacamole
+    image: flcontainers/guacamole:1.6.0
+    state: started
+    restart_policy: unless-stopped
+    volumes:
+      - "{{ docker_dir }}/guacamole/config:/config"
+    networks:
+      - name: homelab
+    # The stock image healthcheck has a 300s interval, so the container sits in
+    # "starting" for 5 min after a deploy , and Traefik's docker provider won't
+    # register a router for a container until it is healthy, leaving guac.{{ domain }}
+    # returning 404 the whole time. Override with a short interval + start_period so
+    # it reports healthy (and Traefik routes) within ~30s. Probes the web port (8080).
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8080 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.guac.entrypoints: "http"
+      traefik.http.routers.guac.rule: "Host(`guac.{{ domain }}`)"
+      traefik.http.middlewares.guac-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.guac.middlewares: "guac-https-redirect"
+      traefik.http.routers.guac-secure.entrypoints: "https"
+      traefik.http.routers.guac-secure.rule: "Host(`guac.{{ domain }}`)"
+      traefik.http.routers.guac-secure.tls: "true"
+      traefik.http.routers.guac-secure.service: "guac"
+      traefik.http.routers.guac-secure.middlewares: "authelia@docker"
+      traefik.http.services.guac.loadbalancer.server.port: "8080"
+      traefik.docker.network: "homelab"
