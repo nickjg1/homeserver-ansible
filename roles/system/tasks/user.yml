@@ -15,6 +15,10 @@
   user:
     name: "{{ username }}"
     password: "{{user_password | password_hash('sha512')}}"
+    # Only set the password when first creating the user. Without this, the
+    # module default (always) would re-hash with a new random salt every run
+    # and overwrite a password the user may have changed since.
+    update_password: on_create
     groups:
       - "{{ sudo_group }}"
       - docker
