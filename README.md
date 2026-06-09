@@ -116,6 +116,21 @@ Run this command, then enter your sudo password and vault password when prompted
 ansible-playbook run.yml -K --ask-vault-pass
 ```
 
+### Optional: skip the vault password prompt
+
+If you'd rather not type the vault password every time, save it to a file and
+point Ansible at it. The file is gitignored, so it never leaves your machine:
+
+```bash
+printf '%s' 'your-vault-password' > .vault_pass
+chmod 600 .vault_pass
+export ANSIBLE_VAULT_PASSWORD_FILE=.vault_pass   # add to your shell profile to persist
+```
+
+With that set, you can drop `--ask-vault-pass` from the commands above. Keep in
+mind this stores your vault password in plaintext on disk, so only do it on a
+machine you trust (ideally with full-disk encryption).
+
 ## Notes and disclaimers
 
 This playbook opens your server up to the internet and potentially malicious
