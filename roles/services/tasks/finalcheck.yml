@@ -19,7 +19,7 @@
     - "{{ docker_dir }}/jellyfin"
     - "{{ docker_dir }}/seerr"
     - "{{ docker_dir }}/monitoring"
-    - "{{ docker_dir }}/mysql"
+    - "{{ docker_dir }}/mariadb"
     - "{{ docker_dir }}/n8n"
     - "{{ docker_dir }}/nextcloud"
     - "{{ docker_dir }}/portainer"

@@ -13,7 +13,7 @@
     - jellyfin
     - seerr
     - monitoring
-    - mysql
+    - mariadb
     - n8n
     - nextcloud
     - pihole

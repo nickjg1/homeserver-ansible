@@ -1,17 +1,17 @@
 ---
-# LinuxServer MariaDB. It stores all data under a single /config mount. The
-# container is named "mysql" for backwards compatibility with services that
-# reference that hostname.
+# MariaDB (a drop-in MySQL-compatible engine) via the LinuxServer image. All
+# state lives under a single /config mount. The container name "mariadb" doubles
+# as its hostname on the docker network and point Nextcloud's database host at it.
 - name: Create mariadb container
   community.docker.docker_container:
-    name: mysql
+    name: mariadb
     image: lscr.io/linuxserver/mariadb:11.4.12-r0-ls220
     state: started
     restart_policy: unless-stopped
     networks:
       - name: homelab
     volumes:
-      - "{{ docker_dir }}/mysql/config:/config"
+      - "{{ docker_dir }}/mariadb/config:/config"
     env:
       PUID: "{{ puid | string }}"
       PGID: "{{ pgid | string }}"
