@@ -36,6 +36,9 @@
         docker:
           endpoint: "unix:///var/run/docker.sock"
           exposedByDefault: false
+        file:
+          directory: /dynamic
+          watch: true
       certificatesResolvers:
         cloudflare:
           acme:
@@ -51,6 +54,47 @@
     owner: "{{ username }}"
     group: "{{ username }}"
 
+- name: Create traefik dynamic config directory
+  # Consumed by the file provider above (directory: /dynamic). Holds routes that
+  # the docker provider cannot express — e.g. host-networked containers.
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/traefik/data/dynamic"
+    state: directory
+    mode: "0755"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    access_time: preserve
+    modification_time: preserve
+
+- name: Deploy Home Assistant dynamic route (file provider)
+  # Home Assistant runs with network_mode: host, so Traefik's docker provider
+  # cannot route to it (502). This file-provider router targets HA on the host
+  # via host.docker.internal (mapped to host-gateway on the traefik container),
+  # which is subnet-independent. Removing HA → delete this file.
+  ansible.builtin.copy:
+    content: |
+      http:
+        routers:
+          homeassistant-host:
+            rule: "Host(`homeassistant.{{ domain }}`)"
+            entryPoints:
+              - https
+            middlewares:
+              - authelia@docker
+            service: homeassistant-host-svc
+            priority: 1000
+            tls: {}
+        services:
+          homeassistant-host-svc:
+            loadBalancer:
+              passHostHeader: true
+              servers:
+                - url: "http://host.docker.internal:8123"
+    dest: "{{ docker_dir }}/traefik/data/dynamic/homeassistant.yml"
+    mode: "0644"
+    owner: "{{ username }}"
+    group: "{{ username }}"
+
 - name: Deploy traefik with docker container
   community.docker.docker_container:
     name: traefik
@@ -61,6 +105,11 @@
       - no-new-privileges:true
     networks:
       - name: homelab
+    # Lets the file-provider routes reach host-networked services (e.g. Home
+    # Assistant on :8123) via http://host.docker.internal, independent of the
+    # docker bridge subnet.
+    etc_hosts:
+      host.docker.internal: host-gateway
     ports:
       - "80:80"
       - "443:443"
@@ -69,6 +118,7 @@
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - "{{ docker_dir }}/traefik/data/acme.json:/acme.json"
       - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
+      - "{{ docker_dir }}/traefik/data/dynamic:/dynamic:ro"
     env:
       CF_DNS_API_TOKEN: "{{ cloudflare_dns_api_token }}"
     labels:

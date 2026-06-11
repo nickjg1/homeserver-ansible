@@ -7,20 +7,15 @@
       PUID: "{{ puid | string }}"
       PGID: "{{ pgid | string }}"
       TZ: "{{ timezone }}"
+    # Home Assistant needs host networking for device/mDNS discovery. Traefik's
+    # docker provider cannot route to a host-network container (it can't infer a
+    # container IP/port on the docker network), which produces a 502. Routing is
+    # therefore handled by Traefik's FILE provider instead — see the
+    # dynamic/homeassistant.yml router deployed in the traefik role. Do NOT add
+    # traefik.* docker labels here; they are the 502 cause for host-networked HA.
     network_mode: host
     volumes:
       - "{{ docker_dir }}/homeassistant/config:/config"
     restart_policy: unless-stopped
     labels:
-      traefik.enable: "true"
-      traefik.http.routers.homeassistant.entrypoints: "http"
-      traefik.http.routers.homeassistant.rule: "Host(`homeassistant.{{ domain }}`)"
-      traefik.http.middlewares.homeassistant-https-redirect.redirectscheme.scheme: "https"
-      traefik.http.routers.homeassistant.middlewares: "homeassistant-https-redirect"
-      traefik.http.routers.homeassistant-secure.entrypoints: "https"
-      traefik.http.routers.homeassistant-secure.rule: "Host(`homeassistant.{{ domain }}`)"
-      traefik.http.routers.homeassistant-secure.tls: "true"
-      traefik.http.routers.homeassistant-secure.service: "homeassistant"
-      traefik.http.routers.homeassistant-secure.middlewares: "authelia@docker"
-      traefik.http.services.homeassistant.loadbalancer.server.port: "8123"
-      traefik.docker.network: "homelab"
+      traefik.enable: "false"
