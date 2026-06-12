@@ -13,17 +13,27 @@
 # does the redirect) and RAILS_ASSUME_SSL=true (trust X-Forwarded-Proto for secure
 # cookies/links). Built-in AI is left keyless/dormant (no OPENAI/EXTERNAL_ASSISTANT).
 
-- name: Ensure Sure data directories exist
+# Active Storage uploads are written by sure-web as {{ username }}, so we own
+# this dir. The db/redis data dirs are handled separately below.
+- name: Ensure Sure app storage directory exists
   ansible.builtin.file:
-    path: "{{ item.path }}"
+    path: "{{ docker_dir }}/sure/storage"
     state: directory
     owner: "{{ username }}"
     group: "{{ username }}"
-    mode: "{{ item.mode }}"
+    mode: "0755"
+
+# Postgres and Redis chown -R their data dirs to their own in-container uid on
+# every start. Managing owner/group/mode here would fight that and make the run
+# non-idempotent (re-chowning live PGDATA away from Postgres is also risky), so
+# we only ensure the dirs exist and let each container own its data.
+- name: Ensure Sure container-managed data directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
   loop:
-    - { path: "{{ docker_dir }}/sure/storage", mode: "0755" }  # Active Storage uploads
-    - { path: "{{ docker_dir }}/sure/db", mode: "0700" }       # Postgres re-chowns to its uid on init
-    - { path: "{{ docker_dir }}/sure/redis", mode: "0755" }
+    - "{{ docker_dir }}/sure/db"
+    - "{{ docker_dir }}/sure/redis"
 
 - name: Create sure-db container (PostgreSQL)
   community.docker.docker_container:
