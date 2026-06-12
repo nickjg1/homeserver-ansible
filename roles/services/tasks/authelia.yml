@@ -89,6 +89,8 @@
             policy: two_factor
           - domain: "pihole.{{ domain }}"
             policy: two_factor
+          - domain: "sure.{{ domain }}"
+            policy: two_factor
 
 
       session:
