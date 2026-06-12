@@ -102,7 +102,7 @@
       DB_PORT: "5432"
       REDIS_URL: "redis://sure-redis:6379/1"
       APP_DOMAIN: "sure.{{ domain }}"
-      ONBOARDING_STATE: "open"   # flipped to "closed" in Task 4 after the admin exists
+      ONBOARDING_STATE: "closed"   # single-admin instance; blocks new self-signups (Setting::ONBOARDING_STATES)
     labels:
       traefik.enable: "true"
       traefik.http.routers.sure.entrypoints: "http"
