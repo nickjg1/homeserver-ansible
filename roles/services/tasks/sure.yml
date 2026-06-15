@@ -1,0 +1,142 @@
+---
+# Sure (we-promise/sure) — self-hosted finance app. Multi-container Rails stack:
+# sure-web (Puma UI, the ONLY Traefik-exposed service, Authelia-gated), sure-worker
+# (Sidekiq), sure-db (dedicated Postgres — the box's MariaDB is untouched), sure-redis
+# (Sidekiq queue/cache). Created in dependency order: data dirs -> db -> redis ->
+# wait for db ready -> web (runs migrations on boot) -> worker.
+#
+# Secrets (sure_secret_key_base, sure_postgres_password) live in the ansible vault.
+# DB identity (user sure_user / db sure_production) is a non-secret constant; keep
+# the names stable so any external backup/restore tooling can rely on them.
+#
+# TLS: Traefik terminates HTTPS and forwards HTTP, so RAILS_FORCE_SSL=false (Traefik
+# does the redirect) and RAILS_ASSUME_SSL=true (trust X-Forwarded-Proto for secure
+# cookies/links). Built-in AI is left keyless/dormant (no OPENAI/EXTERNAL_ASSISTANT).
+
+# Active Storage uploads are written by sure-web as {{ username }}, so we own
+# this dir. The db/redis data dirs are handled separately below.
+- name: Ensure Sure app storage directory exists
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/sure/storage"
+    state: directory
+    owner: "{{ username }}"
+    group: "{{ username }}"
+    mode: "0755"
+
+# Postgres and Redis chown -R their data dirs to their own in-container uid on
+# every start. Managing owner/group/mode here would fight that and make the run
+# non-idempotent (re-chowning live PGDATA away from Postgres is also risky), so
+# we only ensure the dirs exist and let each container own its data.
+- name: Ensure Sure container-managed data directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ docker_dir }}/sure/db"
+    - "{{ docker_dir }}/sure/redis"
+
+- name: Create sure-db container (PostgreSQL)
+  community.docker.docker_container:
+    name: sure-db
+    image: postgres:16.14
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/sure/db:/var/lib/postgresql/data"
+    env:
+      POSTGRES_USER: "sure_user"
+      POSTGRES_PASSWORD: "{{ sure_postgres_password }}"
+      POSTGRES_DB: "sure_production"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sure_user -d sure_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+- name: Create sure-redis container
+  community.docker.docker_container:
+    name: sure-redis
+    image: redis:7.4-alpine
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/sure/redis:/data"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+- name: Wait for sure-db to accept connections
+  ansible.builtin.command: docker exec sure-db pg_isready -U sure_user -d sure_production
+  register: sure_db_ping
+  until: sure_db_ping.rc == 0
+  retries: 30
+  delay: 2
+  changed_when: false
+
+- name: Create sure-web container (Rails/Puma UI)
+  community.docker.docker_container:
+    name: sure-web
+    image: ghcr.io/we-promise/sure:0.7.1-hotfix.1
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/sure/storage:/rails/storage"
+    env:
+      SELF_HOSTED: "true"
+      RAILS_FORCE_SSL: "false"
+      RAILS_ASSUME_SSL: "true"
+      SECRET_KEY_BASE: "{{ sure_secret_key_base }}"
+      POSTGRES_USER: "sure_user"
+      POSTGRES_PASSWORD: "{{ sure_postgres_password }}"
+      POSTGRES_DB: "sure_production"
+      DB_HOST: "sure-db"
+      DB_PORT: "5432"
+      REDIS_URL: "redis://sure-redis:6379/1"
+      APP_DOMAIN: "sure.{{ domain }}"
+      ONBOARDING_STATE: "closed"   # single-admin instance; blocks new self-signups (Setting::ONBOARDING_STATES)
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.sure.entrypoints: "http"
+      traefik.http.routers.sure.rule: "Host(`sure.{{ domain }}`)"
+      traefik.http.middlewares.sure-https-redirect.redirectscheme.scheme: "https"
+      traefik.http.routers.sure.middlewares: "sure-https-redirect"
+      traefik.http.routers.sure-secure.entrypoints: "https"
+      traefik.http.routers.sure-secure.rule: "Host(`sure.{{ domain }}`)"
+      traefik.http.routers.sure-secure.tls: "true"
+      traefik.http.routers.sure-secure.service: "sure"
+      traefik.http.routers.sure-secure.middlewares: "authelia@docker"
+      traefik.http.services.sure.loadbalancer.server.port: "3000"
+      traefik.docker.network: "homelab"
+
+- name: Create sure-worker container (Sidekiq)
+  community.docker.docker_container:
+    name: sure-worker
+    image: ghcr.io/we-promise/sure:0.7.1-hotfix.1
+    command: bundle exec sidekiq
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    volumes:
+      - "{{ docker_dir }}/sure/storage:/rails/storage"
+    env:
+      SELF_HOSTED: "true"
+      RAILS_FORCE_SSL: "false"
+      RAILS_ASSUME_SSL: "true"
+      SECRET_KEY_BASE: "{{ sure_secret_key_base }}"
+      POSTGRES_USER: "sure_user"
+      POSTGRES_PASSWORD: "{{ sure_postgres_password }}"
+      POSTGRES_DB: "sure_production"
+      DB_HOST: "sure-db"
+      DB_PORT: "5432"
+      REDIS_URL: "redis://sure-redis:6379/1"
+      APP_DOMAIN: "sure.{{ domain }}"
