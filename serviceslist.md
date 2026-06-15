@@ -36,6 +36,7 @@ You don't have to run everything. Remove any service you don't want from
 | Filebrowser | `files.<yourdomain>` | Web file manager for browsing the server. |
 | n8n | `n8n.<yourdomain>` | Workflow automation and integrations. |
 | Code Server | `code.<yourdomain>` | VS Code in the browser. |
+| Sure | `sure.<yourdomain>` | Self-hosted personal finance and budgeting app. Runs its own PostgreSQL and Redis. |
 
 ## Infrastructure and monitoring
 

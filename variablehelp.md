@@ -89,6 +89,12 @@ password. Do not reuse passwords.
 
 `mysql_password`: The password for the MariaDB database.
 
+`sure_secret_key_base`: Rails secret key base for the Sure finance app. Generate
+one with `openssl rand -hex 64`.
+
+`sure_postgres_password`: The password for Sure's dedicated PostgreSQL database.
+Generate one with `openssl rand -hex 24`.
+
 `vpn_username`: The username for your VPN service.
 
 `vpn_password`: The password for your VPN service.
