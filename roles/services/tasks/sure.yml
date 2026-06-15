@@ -6,8 +6,8 @@
 # wait for db ready -> web (runs migrations on boot) -> worker.
 #
 # Secrets (sure_secret_key_base, sure_postgres_password) live in the ansible vault.
-# DB identity (user sure_user / db sure_production) is a non-secret constant, also
-# referenced verbatim by the untracked backup + restore-test scripts.
+# DB identity (user sure_user / db sure_production) is a non-secret constant; keep
+# the names stable so any external backup/restore tooling can rely on them.
 #
 # TLS: Traefik terminates HTTPS and forwards HTTP, so RAILS_FORCE_SSL=false (Traefik
 # does the redirect) and RAILS_ASSUME_SSL=true (trust X-Forwarded-Proto for secure
