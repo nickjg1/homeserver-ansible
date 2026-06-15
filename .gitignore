@@ -8,3 +8,6 @@ hosts/hosts
 # Ansible noise
 *.retry
 .vault_pass
+
+# Local-only material (host-specific values, runbooks, notes), never committed
+/personal-server/
