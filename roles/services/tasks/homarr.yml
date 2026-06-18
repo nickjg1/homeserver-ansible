@@ -14,9 +14,13 @@
     env:
       SECRET_ENCRYPTION_KEY: "{{ homarr_encryption_key }}"
       TZ: "{{ timezone }}"
+      # SECURITY: reach Docker via the read-only socket proxy, NOT the raw root socket.
+      # homarr is public-facing; a raw /var/run/docker.sock = host root if it is ever
+      # compromised. The proxy is GET-only (no create/start/exec). Also point homarr's
+      # in-app Docker integration at tcp://docker-socket-proxy:2375 to repopulate widgets.
+      DOCKER_HOST: "tcp://docker-socket-proxy:2375"
     volumes:
       - "{{ docker_dir }}/homarr:/appdata"
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
       traefik.enable: "true"
       traefik.http.routers.homarr.entrypoints: "http"
