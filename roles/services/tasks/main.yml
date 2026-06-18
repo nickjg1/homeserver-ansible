@@ -2,6 +2,7 @@
   ansible.builtin.include_tasks: "roles/services/tasks/{{ item }}.yml"
   loop:
     - authelia
+    - docker_socket_proxy   # read-only socket proxy; MUST be created before its consumers (traefik, homarr, diun)
     - traefik
     - code_server
     - dashdot

@@ -1,0 +1,38 @@
+---
+# Read-only Docker-socket proxy (tecnativa/docker-socket-proxy).
+#
+# Lets containers that only need to READ the Docker API (Traefik = route discovery,
+# diun = image-update watch, homarr = container-status widget) reach it WITHOUT
+# bind-mounting the raw /var/run/docker.sock — which is host-root-equivalent (write/exec
+# access = container escape). This proxy is the ONLY non-management thing that mounts the
+# real socket (read-only); it exposes a scoped, GET-only TCP API (port 2375) on the
+# homelab network and DENIES all writes (POST=0 → no create/start/stop/exec). NOT
+# published to the host.
+#
+# Consumers (Traefik, diun, homarr) point at  tcp://docker-socket-proxy:2375 . Portainer
+# deliberately keeps the raw socket (it needs write access for management; gated behind
+# the SSO portal, not publicly exposed).
+- name: Create docker-socket-proxy container
+  community.docker.docker_container:
+    name: docker-socket-proxy
+    image: tecnativa/docker-socket-proxy:0.3.0
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: homelab
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    security_opts:
+      - "no-new-privileges:true"
+    env:
+      # GET-only allowlist — exactly what Traefik (containers/networks/events), diun
+      # (containers/images) and homarr (containers) need to read; everything else (and
+      # ALL writes) stays denied by default.
+      CONTAINERS: "1"
+      IMAGES: "1"
+      NETWORKS: "1"
+      INFO: "1"
+      VERSION: "1"
+      PING: "1"
+      POST: "0"
+      LOG_LEVEL: "warning"

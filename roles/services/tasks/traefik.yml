@@ -34,7 +34,9 @@
           address: ":443"
       providers:
         docker:
-          endpoint: "unix:///var/run/docker.sock"
+          # Read the Docker API via the read-only socket-proxy (GET-only), NOT the raw
+          # /var/run/docker.sock — removes the host-root escape surface from the proxy.
+          endpoint: "tcp://docker-socket-proxy:2375"
           exposedByDefault: false
         file:
           directory: /dynamic
@@ -114,8 +116,10 @@
       - "80:80"
       - "443:443"
 
+    # SECURITY: no raw /var/run/docker.sock mount — Traefik reaches the Docker API through
+    # the read-only docker-socket-proxy (endpoint set in traefik.yml above), so a Traefik
+    # compromise can no longer reach a writable socket = no host-root escape from the proxy.
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
       - "{{ docker_dir }}/traefik/data/acme.json:/acme.json"
       - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
       - "{{ docker_dir }}/traefik/data/dynamic:/dynamic:ro"

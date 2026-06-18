@@ -13,7 +13,6 @@
     state: started
     restart_policy: unless-stopped
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
       - "{{ docker_dir }}/diun:/data"
     env:
       TZ: "{{ timezone }}"
@@ -22,6 +21,9 @@
       DIUN_WATCH_SCHEDULE: "0 6 * * *"
       DIUN_WATCH_FIRSTCHECKNOTIF: "false"
       DIUN_PROVIDERS_DOCKER: "true"
+      # SECURITY: reach Docker via the read-only socket proxy instead of mounting the raw
+      # socket (diun only needs to READ container/image info). GET-only, no escape surface.
+      DIUN_PROVIDERS_DOCKER_ENDPOINT: "tcp://docker-socket-proxy:2375"
       DIUN_PROVIDERS_DOCKER_WATCHBYDEFAULT: "true"
       # Push notifications via ntfy. The topic name is the only access control on
       # ntfy.sh (anyone who knows it can read/post), so it lives in vault.yml.
