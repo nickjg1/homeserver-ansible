@@ -5,7 +5,17 @@
     image: mauricenino/dashdot:6.3.4
     restart_policy: unless-stopped
     state: started
-    privileged: true
+    # SECURITY (2026-06-18): dashdot does NOT need --privileged. `privileged: true`
+    # auto-implies `security-opt label=disable` + AppArmor-unconfined, which combined
+    # with the host `/` bind below turned a dashdot compromise into a host-escape
+    # primitive (container -> root on the host). Run it unprivileged with the host
+    # mount kept read-only, ALL capabilities dropped, and no-new-privileges. Trade-off:
+    # the SMART/disk-temperature widget may degrade without raw device access — fine.
+    privileged: false
+    cap_drop:
+      - all
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     volumes:
