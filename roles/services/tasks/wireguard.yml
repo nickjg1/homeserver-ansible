@@ -2,7 +2,10 @@
 - name: Create wireguard container
   community.docker.docker_container:
     name: wireguard
-    image: weejewel/wg-easy@sha256:ea65f283dfeb62628ce942ce38974f9db05177aa27ab69b787115b78591552f3  # pinned by digest (wg-easy)
+    # Maintained wg-easy v14 (the old weejewel/wg-easy was archived/3yr-stale). Pinned by digest.
+    # NOTE: do NOT jump to v15 — it's a rewrite with a new config DB that does NOT read the
+    # existing wg0.conf + wg0.json (would lose peers). v14 keeps that format.
+    image: ghcr.io/wg-easy/wg-easy@sha256:5f26407fd2ede54df76d63304ef184576a6c1bb73f934a58a11abdd852fab549
     sysctls:
       "net.ipv4.ip_forward": "1"
       "net.ipv4.conf.all.src_valid_mark": "1"
@@ -11,7 +14,9 @@
       - SYS_MODULE
     state: started
     env:
-      "PASSWORD": "{{ wg_password }}"
+      # v14+ REQUIRES a bcrypt PASSWORD_HASH — plaintext PASSWORD hard-errors at boot.
+      # Generate one with:  docker run --rm ghcr.io/wg-easy/wg-easy:14 wgpw '<password>'
+      "PASSWORD_HASH": "{{ wg_password_hash }}"
       "WG_HOST": "{{ ip_address }}"
     ports:
       - "51820:51820/udp"
