@@ -12,6 +12,8 @@
     image: crazymax/diun:4.33.0
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     volumes:
       - "{{ docker_dir }}/diun:/data"
     env:

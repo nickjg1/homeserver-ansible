@@ -4,6 +4,8 @@
     name: transmission
     image: haugene/transmission-openvpn:5.4.1
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     state: started
     networks:
       - name: homelab

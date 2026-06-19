@@ -18,6 +18,8 @@
     volumes:
       - "{{ docker_dir }}/wireguard/config:/etc/wireguard"
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     labels:

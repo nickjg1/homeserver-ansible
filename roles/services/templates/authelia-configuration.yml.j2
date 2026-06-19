@@ -1,0 +1,81 @@
+#jinja2: trim_blocks:True, lstrip_blocks:True
+---
+server:
+  host: 0.0.0.0
+  port: 9091
+log:
+  level: info
+theme: dark
+# This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
+jwt_secret: "{{ jwt_secret }}"
+default_redirection_url: "https://auth.{{ domain }}"
+totp:
+  issuer: authelia.com
+
+authentication_backend:
+  file:
+    path: /config/users_database.yml
+    password:
+      algorithm: argon2id
+      iterations: 1
+      salt_length: 16
+      parallelism: 8
+      memory: 64
+
+# Access-control rules are rendered from two lists so the role stays the single source of
+# truth and a re-render can never drop live rules (M-5):
+#   authelia_base_rules  — generic per-service defaults (this role; public template).
+#   authelia_extra_rules — host-specific extras (gitignored group_vars/all/local.yml):
+#                          personal apps + path-scoped API bypasses.
+# extras are PREPENDED so path-scoped bypass rules (e.g. Sure /api + /reports) are matched
+# BEFORE the generic domain catch-all — Authelia evaluates rules top-down, first match wins.
+access_control:
+  default_policy: deny
+  rules:
+{% for r in (authelia_extra_rules | default([])) + authelia_base_rules %}
+    - domain: "{{ r.domain }}"
+{% if r.resources is defined %}
+      resources:
+{% for res in r.resources %}
+        - "{{ res }}"
+{% endfor %}
+{% endif %}
+{% if r.methods is defined %}
+      methods:
+{% for m in r.methods %}
+        - {{ m }}
+{% endfor %}
+{% endif %}
+      policy: {{ r.policy }}
+{% endfor %}
+
+session:
+  name: authelia_session
+  # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
+  secret: "{{ authelia_session_secret }}"
+  expiration: 10800  # 3 hours
+  inactivity: 300  # 5 minutes
+  domain: "{{ domain }}"  # Should match whatever your root protected domain is
+
+regulation:
+  max_retries: 3
+  find_time: 120
+  ban_time: 300
+
+storage:
+  encryption_key: "{{ authelia_sqlite_encryption_key }}"
+  local:
+    path: /config/db.sqlite3
+
+# Authelia requires a notifier. Default = filesystem (no credentials). A host can switch to
+# SMTP by setting `authelia_notifier` in group_vars/all/local.yml (structure) with the mail
+# password from vault.yml — keeps the public template credential-free while letting this host
+# send email (M-5: notifier is part of the single-source-of-truth render, not hand-edited live).
+notifier:
+{% if authelia_notifier is defined %}
+{{ authelia_notifier | to_nice_yaml(indent=2) | indent(2, true) }}
+{% else %}
+  filesystem:
+    filename: /config/notification.txt
+{% endif %}
+...

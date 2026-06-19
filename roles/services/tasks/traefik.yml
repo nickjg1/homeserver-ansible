@@ -32,6 +32,9 @@
                 scheme: "https"
         https:
           address: ":443"
+          http:
+            middlewares:
+              - security-headers@file   # global response security headers (HSTS/nosniff/referrer)
       providers:
         docker:
           # Read the Docker API via the read-only socket-proxy (GET-only), NOT the raw
@@ -67,6 +70,26 @@
     group: "{{ username }}"
     access_time: preserve
     modification_time: preserve
+
+- name: Deploy security-headers dynamic config (file provider)
+  # Reusable response-header middleware applied to ALL routers via the https entrypoint
+  # (entryPoints.https.http.middlewares above). Safe global subset: HSTS, X-Content-Type-
+  # Options=nosniff, referrer-policy. X-Frame-Options/CSP are intentionally OMITTED — they
+  # would break cross-subdomain iframes (e.g. homarr embedding other services) and need
+  # per-app tuning.
+  ansible.builtin.copy:
+    content: |
+      http:
+        middlewares:
+          security-headers:
+            headers:
+              stsSeconds: 31536000
+              contentTypeNosniff: true
+              referrerPolicy: "strict-origin-when-cross-origin"
+    dest: "{{ docker_dir }}/traefik/data/dynamic/security-headers.yml"
+    mode: "0644"
+    owner: "{{ username }}"
+    group: "{{ username }}"
 
 - name: Deploy Home Assistant dynamic route (file provider)
   # Home Assistant runs with network_mode: host, so Traefik's docker provider

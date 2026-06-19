@@ -41,6 +41,8 @@
     image: postgres:16.14
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     volumes:
@@ -60,14 +62,22 @@
   community.docker.docker_container:
     name: sure-redis
     image: redis:7.4-alpine
+    # Require a password: sure-redis sits on the shared homelab network, so without auth
+    # any other container could read/write Sure's cache + Sidekiq queues. Consumers
+    # (sure-web, sure-worker) authenticate via the password in their REDIS_URL.
+    command: ["redis-server", "--requirepass", "{{ sure_redis_password }}"]
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     volumes:
       - "{{ docker_dir }}/sure/redis:/data"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      # Must authenticate now — a bare `redis-cli ping` returns NOAUTH and would mark
+      # the container unhealthy.
+      test: ["CMD", "redis-cli", "-a", "{{ sure_redis_password }}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -86,6 +96,8 @@
     image: ghcr.io/we-promise/sure:0.7.1-hotfix.1
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     volumes:
@@ -100,7 +112,7 @@
       POSTGRES_DB: "sure_production"
       DB_HOST: "sure-db"
       DB_PORT: "5432"
-      REDIS_URL: "redis://sure-redis:6379/1"
+      REDIS_URL: "redis://:{{ sure_redis_password }}@sure-redis:6379/1"
       APP_DOMAIN: "sure.{{ domain }}"
       ONBOARDING_STATE: "closed"   # single-admin instance; blocks new self-signups (Setting::ONBOARDING_STATES)
     labels:
@@ -124,6 +136,8 @@
     command: bundle exec sidekiq
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     volumes:
@@ -138,5 +152,5 @@
       POSTGRES_DB: "sure_production"
       DB_HOST: "sure-db"
       DB_PORT: "5432"
-      REDIS_URL: "redis://sure-redis:6379/1"
+      REDIS_URL: "redis://:{{ sure_redis_password }}@sure-redis:6379/1"
       APP_DOMAIN: "sure.{{ domain }}"

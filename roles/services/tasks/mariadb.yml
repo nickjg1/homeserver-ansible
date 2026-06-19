@@ -8,6 +8,8 @@
     image: lscr.io/linuxserver/mariadb:11.4.12-r0-ls220
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     volumes:

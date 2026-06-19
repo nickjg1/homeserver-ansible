@@ -4,6 +4,8 @@
     name: nextcloud
     image: lscr.io/linuxserver/nextcloud:33.0.5-ls434
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     state: started
     networks:
       - name: homelab

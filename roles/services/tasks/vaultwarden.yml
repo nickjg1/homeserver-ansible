@@ -5,6 +5,8 @@
     image: vaultwarden/server:1.36.0
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     volumes:
       - "{{ docker_dir }}/vaultwarden/data:/data"
     networks:

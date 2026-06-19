@@ -14,6 +14,20 @@ domain: "<your domain name>"
 local_network: "<your local network, e.g. 10.0.0.0/24>"
 cloudflare_email: "<your cloudflare email>"
 authelia_admin_mail: "<email for authelia>"
+# OPTIONAL — host-specific Authelia access-control rules, PREPENDED to the generic
+# authelia_base_rules (roles/services/tasks/authelia.yml) by the config template. Use for
+# extra apps and path-scoped API bypasses; prepend order lets a path bypass match before a
+# domain catch-all (Authelia is first-match). Defaults to [] (no extras) if unset. Example:
+# authelia_extra_rules:
+#   - { domain: "myapp.{{ domain }}", policy: two_factor }
+#   - domain: "api.{{ domain }}"
+#     resources: ["^/public/.*$"]
+#     methods: [GET]
+#     policy: bypass
+# OPTIONAL — switch Authelia from the default filesystem notifier to SMTP (put the password
+# in vault.yml). Defaults to a filesystem notifier if unset.
+# authelia_notifier:
+#   smtp: { username: "<user>", password: "{{ authelia_smtp_password }}", sender: "<from>", host: "<host>", port: 587 }
 vpn_provider: "<your vpn provider>"
 vpn_config: "<location of vpn server>"
 minecraft_ops: "<your minecraft username(s), comma-separated, for server op>"
@@ -32,6 +46,7 @@ pihole_password: "<pihole password>"
 mysql_password: "<mariadb password>"
 sure_secret_key_base: "<sure rails SECRET_KEY_BASE — openssl rand -hex 64>"
 sure_postgres_password: "<sure postgres role password — openssl rand -hex 24>"
+sure_redis_password: "<sure redis requirepass — openssl rand -hex 24 (hex avoids URL-encoding issues in REDIS_URL)>"
 vpn_username: "<vpn provider username>"
 vpn_password: "<vpn provider password>"
 user_password: "<your sudo password>"

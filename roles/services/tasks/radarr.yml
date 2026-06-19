@@ -5,6 +5,8 @@
     image: lscr.io/linuxserver/radarr:6.1.1.10360-ls304
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     env:
       PUID: "{{ puid | string }}"
       PGID: "{{ pgid | string }}"
