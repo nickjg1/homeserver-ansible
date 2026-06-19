@@ -8,122 +8,53 @@
     modification_time: preserve
 
 - name: Create authelia config file
-  ansible.builtin.copy:
-    content: |
-      ---
-      server:
-        host: 0.0.0.0
-        port: 9091
-      log:
-        level: info
-      theme: dark
-      # This secret can also be set using the env variables AUTHELIA_JWT_SECRET_FILE
-      jwt_secret: "{{ jwt_secret }}"
-      default_redirection_url: "https://auth.{{ domain }}"
-      totp:
-        issuer: authelia.com
-
-      authentication_backend:
-        file:
-          path: /config/users_database.yml
-          password:
-            algorithm: argon2id
-            iterations: 1
-            salt_length: 16
-            parallelism: 8
-            memory: 64
-
-      access_control:
-        default_policy: deny
-        rules:
-          # Rules applied to everyone
-          - domain: "code.{{ domain }}"
-            policy: two_factor
-          - domain: "dash.{{ domain }}"
-            policy: bypass
-          - domain: "duplicati.{{ domain }}"
-            policy: two_factor
-          - domain: "files.{{ domain }}"
-            policy: two_factor
-          - domain: "guac.{{ domain }}"
-            policy: two_factor
-          - domain: "homarr.{{ domain }}"
-            policy: two_factor
-          - domain: "homeassistant.{{ domain }}"
-            policy: two_factor
-          - domain: "jellyfin.{{ domain }}"
-            policy: two_factor
-          - domain: "seerr.{{ domain }}"
-            # bypass: Seerr has its own Jellyfin-based login, gating it behind
-            # Authelia would lock out external requesters without Authelia accounts.
-            policy: bypass
-          - domain: "grafana.{{ domain }}"
-            policy: two_factor
-          - domain: "n8n.{{ domain }}"
-            policy: two_factor
-          - domain: "nextcloud.{{ domain }}"
-            policy: bypass
-          - domain: "portainer.{{ domain }}"
-            policy: two_factor
-          - domain: "prowlarr.{{ domain }}"
-            policy: two_factor
-          - domain: "radarr.{{ domain }}"
-            policy: two_factor
-          - domain: "requestrr.{{ domain }}"
-            policy: two_factor
-          - domain: "sonarr.{{ domain }}"
-            policy: two_factor
-          - domain: "sync.{{ domain }}"
-            policy: two_factor
-          - domain: "traefik.{{ domain }}"
-            policy: two_factor
-          - domain: "unmanic.{{ domain }}"
-            policy: two_factor
-          - domain: "uptime.{{ domain }}"
-            policy: two_factor
-          - domain: "vault.{{ domain }}"
-            policy: bypass
-          - domain: "wg.{{ domain }}"
-            policy: two_factor
-          - domain: "transmission.{{ domain }}"
-            policy: two_factor
-          - domain: "pihole.{{ domain }}"
-            policy: two_factor
-          - domain: "sure.{{ domain }}"
-            policy: two_factor
-
-
-      session:
-        name: authelia_session
-        # This secret can also be set using the env variables AUTHELIA_SESSION_SECRET_FILE
-        secret: "{{ authelia_session_secret }}"
-        expiration: 10800  # 3 hours
-        inactivity: 300  # 5 minutes
-        domain: "{{ domain }}"  # Should match whatever your root protected domain is
-
-      regulation:
-        max_retries: 3
-        find_time: 120
-        ban_time: 300
-
-      storage:
-        encryption_key: "{{ authelia_sqlite_encryption_key }}"
-        local:
-          path: /config/db.sqlite3
-
-      # Authelia requires a notifier. We use the filesystem notifier (no
-      # credentials needed) instead of SMTP, so no mail account is required.
-      # To enable email notifications, replace this with an smtp block using a
-      # dedicated mail credential stored in the vault.
-      notifier:
-        filesystem:
-          filename: /config/notification.txt
-      ...
+  # M-5: rendered from a Jinja template so the role is the single source of truth and a
+  # re-render can never drop live rules. access_control.rules = authelia_extra_rules
+  # (host-specific, gitignored local.yml — PREPENDED) + authelia_base_rules (generic, below).
+  vars:
+    # Generic per-service access-control defaults (public template). Add/adjust hosts here.
+    # Host-specific rules (personal apps, path-scoped API bypasses) live in
+    # group_vars/all/local.yml as `authelia_extra_rules` and are prepended by the template.
+    authelia_base_rules:
+      - { domain: "code.{{ domain }}", policy: two_factor }
+      - { domain: "dash.{{ domain }}", policy: two_factor }
+      - { domain: "duplicati.{{ domain }}", policy: two_factor }
+      - { domain: "files.{{ domain }}", policy: two_factor }
+      - { domain: "guac.{{ domain }}", policy: two_factor }
+      - { domain: "homarr.{{ domain }}", policy: two_factor }
+      - { domain: "homeassistant.{{ domain }}", policy: two_factor }
+      # bypass: Jellyfin has its own auth + native clients can't complete the Authelia portal.
+      - { domain: "jellyfin.{{ domain }}", policy: bypass }
+      # bypass: Seerr has its own Jellyfin-based login; gating it behind Authelia would lock
+      # out external requesters without Authelia accounts.
+      - { domain: "seerr.{{ domain }}", policy: bypass }
+      - { domain: "grafana.{{ domain }}", policy: two_factor }
+      - { domain: "n8n.{{ domain }}", policy: two_factor }
+      - { domain: "nextcloud.{{ domain }}", policy: bypass }
+      - { domain: "portainer.{{ domain }}", policy: two_factor }
+      - { domain: "prowlarr.{{ domain }}", policy: two_factor }
+      - { domain: "radarr.{{ domain }}", policy: two_factor }
+      - { domain: "requestrr.{{ domain }}", policy: two_factor }
+      - { domain: "sonarr.{{ domain }}", policy: two_factor }
+      - { domain: "sync.{{ domain }}", policy: two_factor }
+      - { domain: "traefik.{{ domain }}", policy: two_factor }
+      - { domain: "unmanic.{{ domain }}", policy: two_factor }
+      - { domain: "uptime.{{ domain }}", policy: two_factor }
+      - { domain: "vault.{{ domain }}", policy: bypass }
+      - { domain: "wg.{{ domain }}", policy: two_factor }
+      - { domain: "transmission.{{ domain }}", policy: two_factor }
+      - { domain: "pihole.{{ domain }}", policy: two_factor }
+      - { domain: "sure.{{ domain }}", policy: two_factor }
+  ansible.builtin.template:
+    src: authelia-configuration.yml.j2
     dest: "{{ docker_dir }}/authelia/config/configuration.yml"
     mode: "0644"
     owner: "{{ username }}"
     group: "{{ username }}"
-  changed_when: false
+    # Never write an unparseable Authelia config (would break auth for every protected host).
+    validate: "python3 -c 'import yaml,sys; yaml.safe_load(open(sys.argv[1]))' %s"
+    backup: true
+  register: authelia_config
 
 - name: Create authelia users database file
   ansible.builtin.copy:
@@ -150,6 +81,8 @@
     image: authelia/authelia:4.39.20
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     volumes:
       - "{{ docker_dir }}/authelia/config:/config"
     networks:
@@ -166,3 +99,12 @@
       - "9091"
     env:
       TZ: "{{ timezone }}"
+
+# Authelia reads configuration.yml only at start, so a config change must restart it.
+# (The original role relied on a manual/coach-deploy restart; this makes the role apply
+# its own config changes — part of M-5 making the role authoritative.)
+- name: Restart authelia to apply config changes
+  community.docker.docker_container:
+    name: authelia
+    restart: true
+  when: authelia_config is changed

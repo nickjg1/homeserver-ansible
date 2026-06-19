@@ -16,6 +16,8 @@
     image: itzg/minecraft-server:latest
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     interactive: true
     tty: true
     networks:

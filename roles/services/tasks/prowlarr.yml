@@ -5,6 +5,8 @@
     image: lscr.io/linuxserver/prowlarr:2.3.5.5327-ls148
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     env:
       PUID: "{{ puid | string }}"
       PGID: "{{ pgid | string }}"

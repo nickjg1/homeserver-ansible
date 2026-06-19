@@ -5,12 +5,20 @@
     image: vaultwarden/server:1.36.0
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     volumes:
       - "{{ docker_dir }}/vaultwarden/data:/data"
     networks:
       - name: homelab
     env:
       ADMIN_TOKEN: "{{ vaultwarden_admin_argon2id_pass }}"
+      # Single-admin instance + the web vault is internet-reachable, so block public self-
+      # registration and invited signups (H-6). NOTE: an admin-panel /data/config.json setting
+      # OVERRIDES these env vars — this is the IaC fallback if config.json is ever reset. To add a
+      # user later, flip INVITATIONS_ALLOWED true (or toggle in /admin), invite, then flip back.
+      SIGNUPS_ALLOWED: "false"
+      INVITATIONS_ALLOWED: "false"
     labels:
       traefik.enable: "true"
       traefik.http.routers.vault.entrypoints: "http"

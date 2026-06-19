@@ -9,6 +9,8 @@
     image: ghcr.io/homarr-labs/homarr:v1.64.0
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     networks:
       - name: homelab
     env:

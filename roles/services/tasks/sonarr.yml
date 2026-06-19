@@ -5,6 +5,8 @@
     image: lscr.io/linuxserver/sonarr:4.0.17.2952-ls312
     state: started
     restart_policy: unless-stopped
+    security_opts:
+      - "no-new-privileges:true"
     env:
       PUID: "{{ puid | string }}"
       PGID: "{{ pgid | string }}"
