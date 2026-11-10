@@ -5,13 +5,23 @@
 # diun = image-update watch, homarr = container-status widget) reach it WITHOUT
 # bind-mounting the raw /var/run/docker.sock — which is host-root-equivalent (write/exec
 # access = container escape). This proxy is the ONLY non-management thing that mounts the
-# real socket (read-only); it exposes a scoped, GET-only TCP API (port 2375) on the
-# homelab network and DENIES all writes (POST=0 → no create/start/stop/exec). NOT
-# published to the host.
+# real socket (read-only); it exposes a scoped, GET-only TCP API (port 2375) and DENIES
+# all writes (POST=0 → no create/start/stop/exec).
+#
+# It lives on its own `socket-proxy` network, NOT the shared homelab network: even
+# GET-only, `CONTAINERS=1` lets a caller inspect every container, which returns each
+# container's environment (database passwords, API keys). Only the consumers join that
+# network, so a compromised app on homelab cannot read other services' secrets.
+# Not published to the host unless `docker_socket_proxy_published_ports` is set (e.g.
+# ["127.0.0.1:2375:2375"] for a host-side health check).
 #
 # Consumers (Traefik, diun, homarr) point at  tcp://docker-socket-proxy:2375 . Portainer
 # deliberately keeps the raw socket (it needs write access for management; gated behind
 # the SSO portal, not publicly exposed).
+- name: Create socket-proxy network
+  community.docker.docker_network:
+    name: socket-proxy
+
 - name: Create docker-socket-proxy container
   community.docker.docker_container:
     name: docker-socket-proxy
@@ -19,7 +29,8 @@
     state: started
     restart_policy: unless-stopped
     networks:
-      - name: homelab
+      - name: socket-proxy
+    published_ports: "{{ docker_socket_proxy_published_ports | default([]) }}"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     security_opts:

@@ -8,6 +8,8 @@
 # single-file `.../filebrowser.db:/database.db` mount no longer works. We run as the
 # host user so it can write the mounted dirs, and pass NO command (the entrypoint
 # handles everything; passing `filebrowser` caused the `unknown command` crash-loop).
+# Only `data_dir` is exposed: mounting the whole home dir read-write would let a
+# compromised Filebrowser rewrite shell rc files, scripts or other services' configs.
 - name: Ensure filebrowser config and database directories exist
   ansible.builtin.file:
     path: "{{ item }}"
@@ -28,7 +30,7 @@
     networks:
       - name: homelab
     volumes:
-      - "/home/{{ username }}/:/srv"
+      - "{{ data_dir }}:/srv"
       - "{{ docker_dir }}/filebrowser/config:/config"
       - "{{ docker_dir }}/filebrowser/database:/database"
     restart_policy: unless-stopped
