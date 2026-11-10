@@ -2,7 +2,7 @@
 - name: Create jellyfin container
   community.docker.docker_container:
     name: jellyfin
-    image: lscr.io/linuxserver/jellyfin:10.11.10ubu2404-ls35
+    image: lscr.io/linuxserver/jellyfin:12.4ubu2604-ls59
     state: started
     restart_policy: unless-stopped
     security_opts:
