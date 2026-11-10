@@ -2,7 +2,7 @@
 - name: Create prowlarr container
   community.docker.docker_container:
     name: prowlarr
-    image: lscr.io/linuxserver/prowlarr:2.3.5.5327-ls148
+    image: lscr.io/linuxserver/prowlarr:2.7.0.5723-ls167
     state: started
     restart_policy: unless-stopped
     security_opts:

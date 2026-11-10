@@ -2,7 +2,7 @@
 - name: Create radarr container
   community.docker.docker_container:
     name: radarr
-    image: lscr.io/linuxserver/radarr:6.1.1.10360-ls304
+    image: lscr.io/linuxserver/radarr:6.4.4.10685-ls326
     state: started
     restart_policy: unless-stopped
     security_opts:
