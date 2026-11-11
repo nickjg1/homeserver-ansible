@@ -2,7 +2,7 @@
 - name: Create vaultwarden container
   community.docker.docker_container:
     name: vaultwarden
-    image: vaultwarden/server:1.36.0
+    image: vaultwarden/server:1.37.5
     state: started
     restart_policy: unless-stopped
     security_opts:

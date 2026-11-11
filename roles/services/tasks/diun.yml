@@ -35,3 +35,4 @@
       DIUN_NOTIF_NTFY_PRIORITY: "3"
     networks:
       - name: homelab
+      - name: socket-proxy

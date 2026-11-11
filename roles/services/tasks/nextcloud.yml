@@ -2,7 +2,7 @@
 - name: Create nextcloud container
   community.docker.docker_container:
     name: nextcloud
-    image: lscr.io/linuxserver/nextcloud:33.0.5-ls434
+    image: lscr.io/linuxserver/nextcloud:35.0.2-ls459
     restart_policy: unless-stopped
     security_opts:
       - "no-new-privileges:true"
@@ -29,6 +29,29 @@
       traefik.http.routers.nextcloud-secure.middlewares: "authelia@docker"
       traefik.http.services.nextcloud.loadbalancer.server.port: "80"
       traefik.docker.network: "homelab"
+- name: Check for the generated nextcloud nginx site config
+  ansible.builtin.stat:
+    path: "{{ docker_dir }}/nextcloud/config/nginx/site-confs/default.conf"
+  register: nextcloud_nginx_conf
+
+- name: Keep nextcloud redirects relative
+  # Behind Traefik, nginx sees plain http, so its absolute redirects (/.well-known/caldav,
+  # /.well-known/carddav) would send clients to http://. Relative redirects resolve
+  # against the https URL the client used.
+  ansible.builtin.lineinfile:
+    path: "{{ docker_dir }}/nextcloud/config/nginx/site-confs/default.conf"
+    insertafter: '^\s*server\s*\{'
+    firstmatch: true
+    line: "    absolute_redirect off;"
+  when: nextcloud_nginx_conf.stat.exists
+  register: nextcloud_redirect_fix
+
+- name: Reload nextcloud nginx
+  community.docker.docker_container_exec:
+    container: nextcloud
+    command: nginx -s reload
+  when: nextcloud_redirect_fix is changed
+
 ################ DO THIS AFTER APP CONFIG ################
 # - name: Overwrite protocol to https
 #   ansible.builtin.lineinfile:

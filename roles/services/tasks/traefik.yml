@@ -7,6 +7,32 @@
     access_time: preserve
     modification_time: preserve
 
+- name: Create traefik access-log directory
+  ansible.builtin.file:
+    path: "{{ docker_dir }}/traefik/logs"
+    state: directory
+    mode: "0750"
+    owner: root
+    group: root
+
+- name: Rotate the traefik access log
+  # Traefik keeps the file open, so copytruncate rather than move-and-signal.
+  ansible.builtin.copy:
+    content: |
+      {{ docker_dir }}/traefik/logs/access.log {
+          daily
+          rotate 14
+          compress
+          delaycompress
+          missingok
+          notifempty
+          copytruncate
+      }
+    dest: /etc/logrotate.d/traefik
+    mode: "0644"
+    owner: root
+    group: root
+
 - name: Create acme.json file
   # Traefik refuses an ACME store more permissive than 0600 and silently skips
   # certificate issuance, so this file must be 0600 (owned by root).
@@ -35,6 +61,23 @@
           http:
             middlewares:
               - security-headers@file   # global response security headers (HSTS/nosniff/referrer)
+      # JSON access log for attack attribution. Behind Cloudflare the remote address is a
+      # Cloudflare edge, so the visitor IP is kept from CF-Connecting-IP. forwardedHeaders
+      # deliberately does NOT trust Cloudflare: Cloudflare appends to a visitor-supplied
+      # X-Forwarded-For, and Authelia reads its first entry, so trusting it would let a
+      # client pick the IP Authelia's login rate limit keys on. Other request headers are
+      # dropped so cookies and Authorization never reach the log.
+      accessLog:
+        filePath: /logs/access.log
+        format: json
+        bufferingSize: 100
+        fields:
+          headers:
+            defaultMode: drop
+            names:
+              CF-Connecting-IP: keep
+              User-Agent: keep
+              Referer: keep
       providers:
         docker:
           # Read the Docker API via the read-only socket-proxy (GET-only), NOT the raw
@@ -84,6 +127,7 @@
           security-headers:
             headers:
               stsSeconds: 31536000
+              stsIncludeSubdomains: true
               contentTypeNosniff: true
               referrerPolicy: "strict-origin-when-cross-origin"
     dest: "{{ docker_dir }}/traefik/data/dynamic/security-headers.yml"
@@ -123,13 +167,14 @@
 - name: Deploy traefik with docker container
   community.docker.docker_container:
     name: traefik
-    image: traefik:v3.7.3
+    image: traefik:v3.7.13
     restart_policy: unless-stopped
     state: started
     security_opts:
       - no-new-privileges:true
     networks:
       - name: homelab
+      - name: socket-proxy
     # Lets the file-provider routes reach host-networked services (e.g. Home
     # Assistant on :8123) via http://host.docker.internal, independent of the
     # docker bridge subnet.
@@ -146,6 +191,7 @@
       - "{{ docker_dir }}/traefik/data/acme.json:/acme.json"
       - "{{ docker_dir }}/traefik/data/traefik.yml:/traefik.yml:ro"
       - "{{ docker_dir }}/traefik/data/dynamic:/dynamic:ro"
+      - "{{ docker_dir }}/traefik/logs:/logs"
     env:
       CF_DNS_API_TOKEN: "{{ cloudflare_dns_api_token }}"
     labels:
@@ -158,7 +204,8 @@
       traefik.http.routers.traefik.middlewares: "traefik-https-redirect"
       traefik.http.routers.traefik-secure.entrypoints: "https"
       traefik.http.routers.traefik-secure.rule: "Host(`traefik.{{ domain }}`)"
-      traefik.http.routers.traefik-secure.middlewares: "traefik-auth"
+      # SSO (2FA) first, then the dashboard's own basic auth.
+      traefik.http.routers.traefik-secure.middlewares: "authelia@docker,traefik-auth"
       traefik.http.routers.traefik-secure.tls: "true"
       traefik.http.routers.traefik-secure.tls.certresolver: "cloudflare"
       traefik.http.routers.traefik-secure.tls.domains[0].main: "{{ domain }}"

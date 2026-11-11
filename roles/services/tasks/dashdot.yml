@@ -12,6 +12,11 @@
     # mount kept read-only, ALL capabilities dropped, and no-new-privileges. Trade-off:
     # the SMART/disk-temperature widget may degrade without raw device access — fine.
     privileged: false
+    # Run as nobody: as uid 0 (even with every capability dropped) the process still
+    # OWNS root's 0600 files, so the read-only `/` bind exposed things like LUKS
+    # keyfiles and backup credentials under /root. dashdot only reads /proc, /sys and
+    # mount usage, which nobody can do.
+    user: "65534:65534"
     cap_drop:
       - all
     security_opts:
@@ -20,8 +25,9 @@
       - name: homelab
     volumes:
       - "/:/mnt/host:ro"
-    env:
-      DASHDOT_ACCEPT_OOKLA_EULA: "true"
+    # Set `dashdot_network_interface` (e.g. "eth0") to graph the host NIC; without it
+    # dashdot only sees its own container interface.
+    env: "{{ {'DASHDOT_ACCEPT_OOKLA_EULA': 'true'} | combine({'DASHDOT_USE_NETWORK_INTERFACE': dashdot_network_interface} if dashdot_network_interface is defined else {}) }}"
     labels:
       traefik.enable: "true"
       traefik.http.routers.dash.entrypoints: "http"

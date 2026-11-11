@@ -13,6 +13,7 @@
       - "no-new-privileges:true"
     networks:
       - name: homelab
+      - name: socket-proxy
     env:
       SECRET_ENCRYPTION_KEY: "{{ homarr_encryption_key }}"
       TZ: "{{ timezone }}"

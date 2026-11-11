@@ -58,3 +58,9 @@ homarr_encryption_key: "<32-byte hex (openssl rand -hex 32) for homarr 1.x at-re
 docker_dir: "/home/{{ username }}/docker_apps"
 data_dir: "/home/{{ username }}/data"
 shell: /usr/bin/fish
+
+# ---- optional, per host (set in local.yml) ----
+# Publish the read-only docker-socket-proxy on the host loopback for host-side tools:
+# docker_socket_proxy_published_ports: ["127.0.0.1:2375:2375"]
+# Host NIC that dashdot graphs (it runs as nobody and cannot auto-detect it):
+# dashdot_network_interface: "eth0"
